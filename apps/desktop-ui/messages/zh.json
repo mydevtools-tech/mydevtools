@@ -5313,6 +5313,7 @@
     "collapse": "折叠",
     "preview": "预览",
     "noPreview": "此类型的文件无法预览 — 导出后用其他应用打开。",
+    "previewTooLarge": "文件大于 {size} — 导出后用其他应用打开。",
     "export": "导出",
     "exportWarningTitle": "导出解密副本？",
     "exportWarningBody": "文件将以未加密的形式写入你选择的位置。该设备上的任何程序都能读取它。",
@@ -5337,7 +5338,7 @@
     "dismiss": "关闭",
     "viewGrid": "网格视图",
     "viewList": "列表视图",
-    "footerNote": "文件上限 20 MB。使用 Argon2id + XChaCha20-Poly1305 加密；密钥仅在保险库解锁期间保存在内存中。",
+    "footerNote": "文件上限 512 MB。使用 Argon2id + XChaCha20-Poly1305 加密；密钥仅在保险库解锁期间保存在内存中。",
     "cancel": "取消",
     "save": "保存"
   }

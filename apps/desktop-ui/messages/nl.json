@@ -5313,6 +5313,7 @@
     "collapse": "Samenvouwen",
     "preview": "Voorbeeld",
     "noPreview": "Geen voorbeeld voor dit bestandstype — exporteer het om het in een andere app te openen.",
+    "previewTooLarge": "Bestand is groter dan {size} — exporteer het om het in een andere app te openen.",
     "export": "Exporteren",
     "exportWarningTitle": "Een ontsleutelde kopie exporteren?",
     "exportWarningBody": "Het bestand wordt onversleuteld naar de gekozen locatie geschreven. Alles op dat apparaat kan het lezen.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Sluiten",
     "viewGrid": "Rasterweergave",
     "viewList": "Lijstweergave",
-    "footerNote": "Bestanden tot 20 MB. Versleuteld met Argon2id + XChaCha20-Poly1305; de sleutel blijft alleen in het geheugen zolang de kluis ontgrendeld is.",
+    "footerNote": "Bestanden tot 512 MB. Versleuteld met Argon2id + XChaCha20-Poly1305; de sleutel blijft alleen in het geheugen zolang de kluis ontgrendeld is.",
     "cancel": "Annuleren",
     "save": "Opslaan"
   }

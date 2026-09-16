@@ -5313,6 +5313,7 @@
     "collapse": "접기",
     "preview": "미리보기",
     "noPreview": "이 파일 형식은 미리 볼 수 없습니다 — 내보낸 뒤 다른 앱에서 여세요.",
+    "previewTooLarge": "파일이 {size}보다 큽니다 — 내보낸 뒤 다른 앱에서 여세요.",
     "export": "내보내기",
     "exportWarningTitle": "복호화된 사본을 내보낼까요?",
     "exportWarningBody": "선택한 위치에 파일이 암호화되지 않은 상태로 저장됩니다. 그 기기의 무엇이든 읽을 수 있습니다.",
@@ -5337,7 +5338,7 @@
     "dismiss": "닫기",
     "viewGrid": "그리드 보기",
     "viewList": "목록 보기",
-    "footerNote": "최대 20MB 파일. Argon2id + XChaCha20-Poly1305로 암호화되며, 키는 보관함이 잠금 해제된 동안에만 메모리에 유지됩니다.",
+    "footerNote": "최대 512MB 파일. Argon2id + XChaCha20-Poly1305로 암호화되며, 키는 보관함이 잠금 해제된 동안에만 메모리에 유지됩니다.",
     "cancel": "취소",
     "save": "저장"
   }

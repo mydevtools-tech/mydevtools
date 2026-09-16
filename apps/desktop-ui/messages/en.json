@@ -3219,6 +3219,7 @@
     "collapse": "Collapse",
     "preview": "Preview",
     "noPreview": "No preview for this file type — export it to open it in another app.",
+    "previewTooLarge": "File is larger than {size} — export it to open it in another app.",
     "export": "Export",
     "exportWarningTitle": "Export a decrypted copy?",
     "exportWarningBody": "The file will be written unencrypted to the location you choose. Anything on that device can read it.",
@@ -3243,7 +3244,7 @@
     "dismiss": "Dismiss",
     "viewGrid": "Grid view",
     "viewList": "List view",
-    "footerNote": "Files up to 20 MB. Encrypted with Argon2id + XChaCha20-Poly1305; the key lives in memory only while the vault is unlocked.",
+    "footerNote": "Files up to 512 MB. Encrypted with Argon2id + XChaCha20-Poly1305; the key lives in memory only while the vault is unlocked.",
     "cancel": "Cancel",
     "save": "Save"
   },

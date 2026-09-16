@@ -5313,6 +5313,7 @@
     "collapse": "Replega",
     "preview": "Previsualització",
     "noPreview": "No hi ha previsualització per a aquest tipus de fitxer: exporta'l per obrir-lo en una altra aplicació.",
+    "previewTooLarge": "El fitxer supera {size}: exporta'l per obrir-lo en una altra aplicació.",
     "export": "Exporta",
     "exportWarningTitle": "Voleu exportar una còpia desxifrada?",
     "exportWarningBody": "El fitxer s'escriurà sense xifrar a la ubicació que triïs. Qualsevol cosa d'aquest dispositiu el podrà llegir.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Descarta",
     "viewGrid": "Vista de quadrícula",
     "viewList": "Vista de llista",
-    "footerNote": "Fitxers de fins a 20 MB. Xifrats amb Argon2id + XChaCha20-Poly1305; la clau només és a la memòria mentre la caixa forta està desbloquejada.",
+    "footerNote": "Fitxers de fins a 512 MB. Xifrats amb Argon2id + XChaCha20-Poly1305; la clau només és a la memòria mentre la caixa forta està desbloquejada.",
     "cancel": "Cancel·la",
     "save": "Desa"
   }

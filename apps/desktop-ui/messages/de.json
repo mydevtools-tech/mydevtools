@@ -5313,6 +5313,7 @@
     "collapse": "Einklappen",
     "preview": "Vorschau",
     "noPreview": "Keine Vorschau für diesen Dateityp — exportieren Sie die Datei, um sie in einer anderen App zu öffnen.",
+    "previewTooLarge": "Die Datei ist größer als {size} — exportieren Sie sie, um sie in einer anderen App zu öffnen.",
     "export": "Exportieren",
     "exportWarningTitle": "Entschlüsselte Kopie exportieren?",
     "exportWarningBody": "Die Datei wird unverschlüsselt an den gewählten Ort geschrieben. Alles auf diesem Gerät kann sie lesen.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Ausblenden",
     "viewGrid": "Rasteransicht",
     "viewList": "Listenansicht",
-    "footerNote": "Dateien bis 20 MB. Verschlüsselt mit Argon2id + XChaCha20-Poly1305; der Schlüssel bleibt nur im Arbeitsspeicher, solange der Tresor entsperrt ist.",
+    "footerNote": "Dateien bis 512 MB. Verschlüsselt mit Argon2id + XChaCha20-Poly1305; der Schlüssel bleibt nur im Arbeitsspeicher, solange der Tresor entsperrt ist.",
     "cancel": "Abbrechen",
     "save": "Speichern"
   }

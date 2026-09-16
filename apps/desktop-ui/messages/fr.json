@@ -5313,6 +5313,7 @@
     "collapse": "Réduire",
     "preview": "Aperçu",
     "noPreview": "Aucun aperçu pour ce type de fichier — exportez-le pour l'ouvrir dans une autre application.",
+    "previewTooLarge": "Le fichier dépasse {size} — exportez-le pour l'ouvrir dans une autre application.",
     "export": "Exporter",
     "exportWarningTitle": "Exporter une copie déchiffrée ?",
     "exportWarningBody": "Le fichier sera écrit en clair à l'emplacement choisi. Tout ce qui se trouve sur cet appareil pourra le lire.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Ignorer",
     "viewGrid": "Vue en grille",
     "viewList": "Vue en liste",
-    "footerNote": "Fichiers jusqu'à 20 Mo. Chiffrés avec Argon2id + XChaCha20-Poly1305 ; la clé ne réside en mémoire que pendant le déverrouillage du coffre-fort.",
+    "footerNote": "Fichiers jusqu'à 512 Mo. Chiffrés avec Argon2id + XChaCha20-Poly1305 ; la clé ne réside en mémoire que pendant le déverrouillage du coffre-fort.",
     "cancel": "Annuler",
     "save": "Enregistrer"
   }

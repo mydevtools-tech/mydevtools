@@ -5313,6 +5313,7 @@
     "collapse": "Recolher",
     "preview": "Visualização",
     "noPreview": "Sem visualização para este tipo de arquivo — exporte-o para abrir em outro aplicativo.",
+    "previewTooLarge": "O arquivo é maior que {size} — exporte-o para abrir em outro aplicativo.",
     "export": "Exportar",
     "exportWarningTitle": "Exportar uma cópia descriptografada?",
     "exportWarningBody": "O arquivo será gravado sem criptografia no local escolhido. Qualquer coisa nesse dispositivo poderá lê-lo.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Dispensar",
     "viewGrid": "Visualização em grade",
     "viewList": "Visualização em lista",
-    "footerNote": "Arquivos de até 20 MB. Criptografados com Argon2id + XChaCha20-Poly1305; a chave fica na memória apenas enquanto o cofre está desbloqueado.",
+    "footerNote": "Arquivos de até 512 MB. Criptografados com Argon2id + XChaCha20-Poly1305; a chave fica na memória apenas enquanto o cofre está desbloqueado.",
     "cancel": "Cancelar",
     "save": "Salvar"
   }

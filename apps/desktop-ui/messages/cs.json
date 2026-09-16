@@ -5313,6 +5313,7 @@
     "collapse": "Sbalit",
     "preview": "Náhled",
     "noPreview": "Pro tento typ souboru není náhled k dispozici — exportujte jej a otevřete v jiné aplikaci.",
+    "previewTooLarge": "Soubor je větší než {size} — exportujte jej a otevřete v jiné aplikaci.",
     "export": "Exportovat",
     "exportWarningTitle": "Exportovat dešifrovanou kopii?",
     "exportWarningBody": "Soubor se zapíše nezašifrovaný do zvoleného umístění. Přečte si jej cokoli v tomto zařízení.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Zavřít",
     "viewGrid": "Zobrazení mřížky",
     "viewList": "Zobrazení seznamu",
-    "footerNote": "Soubory do 20 MB. Šifrováno pomocí Argon2id + XChaCha20-Poly1305; klíč je v paměti jen po dobu odemčení trezoru.",
+    "footerNote": "Soubory do 512 MB. Šifrováno pomocí Argon2id + XChaCha20-Poly1305; klíč je v paměti jen po dobu odemčení trezoru.",
     "cancel": "Zrušit",
     "save": "Uložit"
   }

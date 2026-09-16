@@ -5313,6 +5313,7 @@
     "collapse": "Fäll ihop",
     "preview": "Förhandsgranska",
     "noPreview": "Ingen förhandsgranskning för den här filtypen — exportera den för att öppna den i en annan app.",
+    "previewTooLarge": "Filen är större än {size} — exportera den för att öppna den i en annan app.",
     "export": "Exportera",
     "exportWarningTitle": "Exportera en dekrypterad kopia?",
     "exportWarningBody": "Filen skrivs okrypterad till platsen du väljer. Allt på den enheten kan läsa den.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Avfärda",
     "viewGrid": "Rutnätsvy",
     "viewList": "Listvy",
-    "footerNote": "Filer upp till 20 MB. Krypterade med Argon2id + XChaCha20-Poly1305; nyckeln finns bara i minnet medan valvet är upplåst.",
+    "footerNote": "Filer upp till 512 MB. Krypterade med Argon2id + XChaCha20-Poly1305; nyckeln finns bara i minnet medan valvet är upplåst.",
     "cancel": "Avbryt",
     "save": "Spara"
   }

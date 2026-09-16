@@ -92,6 +92,9 @@ function errorsKey(errors: { id: string }[]): string {
     .join(",")
 }
 
+/** Largest plaintext handed to the webview for a preview (see `openPreview`). */
+const MAX_PREVIEW_BYTES = 64 * 1024 * 1024
+
 // ponytail: 5th formatBytes copy in the repo; promote to lib/utils when touching the others.
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B"
@@ -279,6 +282,13 @@ export function SecureFilesTool() {
   // ── File actions ───────────────────────────────────────────────────────
 
   const openPreview = async (f: SecureFileEntry) => {
+    // Preview ships the whole plaintext over IPC into a webview Blob, so the
+    // cap is far below the import cap. Bigger files are exported to open.
+    // ponytail: lift once a chunked container allows streaming previews.
+    if (f.size > MAX_PREVIEW_BYTES) {
+      toast.info(t("previewTooLarge", { size: formatBytes(MAX_PREVIEW_BYTES) }))
+      return
+    }
     const type = getFileType(f.name)
     setPreview({ key: f.name, url: null, loading: true, fileType: type })
     try {

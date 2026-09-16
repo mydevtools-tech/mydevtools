@@ -5313,6 +5313,7 @@
     "collapse": "Daralt",
     "preview": "Önizleme",
     "noPreview": "Bu dosya türü için önizleme yok — başka bir uygulamada açmak için dışa aktarın.",
+    "previewTooLarge": "Dosya {size} boyutundan büyük — başka bir uygulamada açmak için dışa aktarın.",
     "export": "Dışa aktar",
     "exportWarningTitle": "Şifresi çözülmüş bir kopya dışa aktarılsın mı?",
     "exportWarningBody": "Dosya, seçtiğiniz konuma şifrelenmeden yazılacak. O cihazdaki her şey onu okuyabilir.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Kapat",
     "viewGrid": "Izgara görünümü",
     "viewList": "Liste görünümü",
-    "footerNote": "20 MB'a kadar dosyalar. Argon2id + XChaCha20-Poly1305 ile şifrelenir; anahtar yalnızca kasa açıkken bellekte tutulur.",
+    "footerNote": "512 MB'a kadar dosyalar. Argon2id + XChaCha20-Poly1305 ile şifrelenir; anahtar yalnızca kasa açıkken bellekte tutulur.",
     "cancel": "İptal",
     "save": "Kaydet"
   }

@@ -5313,6 +5313,7 @@
     "collapse": "Comprimi",
     "preview": "Anteprima",
     "noPreview": "Nessuna anteprima per questo tipo di file — esportalo per aprirlo in un'altra app.",
+    "previewTooLarge": "Il file supera {size} — esportalo per aprirlo in un'altra app.",
     "export": "Esporta",
     "exportWarningTitle": "Esportare una copia decifrata?",
     "exportWarningBody": "Il file verrà scritto in chiaro nella posizione scelta. Qualsiasi cosa su quel dispositivo potrà leggerlo.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Ignora",
     "viewGrid": "Vista a griglia",
     "viewList": "Vista a elenco",
-    "footerNote": "File fino a 20 MB. Cifrati con Argon2id + XChaCha20-Poly1305; la chiave resta in memoria solo finché la cassaforte è sbloccata.",
+    "footerNote": "File fino a 512 MB. Cifrati con Argon2id + XChaCha20-Poly1305; la chiave resta in memoria solo finché la cassaforte è sbloccata.",
     "cancel": "Annulla",
     "save": "Salva"
   }

@@ -5313,6 +5313,7 @@
     "collapse": "Contraer",
     "preview": "Vista previa",
     "noPreview": "No hay vista previa para este tipo de archivo: expórtalo para abrirlo en otra aplicación.",
+    "previewTooLarge": "El archivo supera {size}: expórtalo para abrirlo en otra aplicación.",
     "export": "Exportar",
     "exportWarningTitle": "¿Exportar una copia descifrada?",
     "exportWarningBody": "El archivo se escribirá sin cifrar en la ubicación que elijas. Cualquier cosa en ese dispositivo podrá leerlo.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Descartar",
     "viewGrid": "Vista de cuadrícula",
     "viewList": "Vista de lista",
-    "footerNote": "Archivos de hasta 20 MB. Cifrados con Argon2id + XChaCha20-Poly1305; la clave solo permanece en memoria mientras la bóveda está desbloqueada.",
+    "footerNote": "Archivos de hasta 512 MB. Cifrados con Argon2id + XChaCha20-Poly1305; la clave solo permanece en memoria mientras la bóveda está desbloqueada.",
     "cancel": "Cancelar",
     "save": "Guardar"
   }

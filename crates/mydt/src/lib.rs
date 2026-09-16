@@ -42,7 +42,11 @@ const META_NONCE_AT: usize = DEK_AT + KEY_LEN + TAG_LEN;
 const META_LEN_AT: usize = META_NONCE_AT + NONCE_LEN;
 /// Fixed header size; metadata ciphertext starts here.
 pub const HEADER_LEN: usize = META_LEN_AT + 4;
-pub const MAX_FILE_BYTES: u64 = 20 * 1024 * 1024;
+/// Payload cap. The v1 container is sealed in one shot, so encrypting a file
+/// holds its plaintext *and* its ciphertext in memory at once — the cap is a
+/// memory budget, not a format limit.
+// ponytail: raise past this only with a chunked (streaming) v2 container.
+pub const MAX_FILE_BYTES: u64 = 512 * 1024 * 1024;
 /// Metadata JSON is a few hundred bytes; anything bigger is not ours.
 pub const MAX_META_BYTES: usize = 64 * 1024;
 /// Largest `.mydt` object we will read into memory: payload cap + header +
@@ -370,7 +374,10 @@ mod tests {
         }
     }
 
+    /// A payload at the cap, sealed for real (~3 min, ~2 GB peak RSS — ignored
+    /// by default): `cargo test max_size_payload_roundtrips -- --ignored`.
     #[test]
+    #[ignore]
     fn max_size_payload_roundtrips() {
         let kek = [1u8; KEY_LEN];
         let p = params();

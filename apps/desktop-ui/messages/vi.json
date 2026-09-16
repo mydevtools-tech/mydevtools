@@ -5313,6 +5313,7 @@
     "collapse": "Thu gọn",
     "preview": "Xem trước",
     "noPreview": "Không xem trước được loại tệp này — hãy xuất ra để mở bằng ứng dụng khác.",
+    "previewTooLarge": "Tệp lớn hơn {size} — hãy xuất ra để mở bằng ứng dụng khác.",
     "export": "Xuất",
     "exportWarningTitle": "Xuất một bản sao đã giải mã?",
     "exportWarningBody": "Tệp sẽ được ghi ở dạng không mã hóa tại vị trí bạn chọn. Mọi thứ trên thiết bị đó đều có thể đọc được.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Bỏ qua",
     "viewGrid": "Dạng lưới",
     "viewList": "Dạng danh sách",
-    "footerNote": "Tệp tối đa 20 MB. Mã hóa bằng Argon2id + XChaCha20-Poly1305; khóa chỉ nằm trong bộ nhớ khi kho đang mở khóa.",
+    "footerNote": "Tệp tối đa 512 MB. Mã hóa bằng Argon2id + XChaCha20-Poly1305; khóa chỉ nằm trong bộ nhớ khi kho đang mở khóa.",
     "cancel": "Hủy",
     "save": "Lưu"
   }

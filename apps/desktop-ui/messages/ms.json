@@ -5313,6 +5313,7 @@
     "collapse": "Kuncupkan",
     "preview": "Pratonton",
     "noPreview": "Tiada pratonton untuk jenis fail ini — eksport untuk membukanya dalam aplikasi lain.",
+    "previewTooLarge": "Fail lebih besar daripada {size} — eksport untuk membukanya dalam aplikasi lain.",
     "export": "Eksport",
     "exportWarningTitle": "Eksport salinan yang telah dinyahsulit?",
     "exportWarningBody": "Fail akan ditulis tanpa sulitan ke lokasi yang anda pilih. Apa-apa pada peranti itu boleh membacanya.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Tutup",
     "viewGrid": "Paparan grid",
     "viewList": "Paparan senarai",
-    "footerNote": "Fail sehingga 20 MB. Disulitkan dengan Argon2id + XChaCha20-Poly1305; kunci hanya berada dalam ingatan selagi peti besi dibuka.",
+    "footerNote": "Fail sehingga 512 MB. Disulitkan dengan Argon2id + XChaCha20-Poly1305; kunci hanya berada dalam ingatan selagi peti besi dibuka.",
     "cancel": "Batal",
     "save": "Simpan"
   }

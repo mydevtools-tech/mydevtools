@@ -5313,6 +5313,7 @@
     "collapse": "Vou toe",
     "preview": "Voorskou",
     "noPreview": "Geen voorskou vir hierdie lêertipe nie — voer dit uit om dit in 'n ander toepassing te open.",
+    "previewTooLarge": "Lêer is groter as {size} — voer dit uit om dit in 'n ander toepassing te open.",
     "export": "Voer uit",
     "exportWarningTitle": "Voer 'n gedekripteerde kopie uit?",
     "exportWarningBody": "Die lêer word ongeënkripteer geskryf na die plek wat jy kies. Enigiets op daardie toestel kan dit lees.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Maak toe",
     "viewGrid": "Roosteraansig",
     "viewList": "Lysaansig",
-    "footerNote": "Lêers tot 20 MB. Geënkripteer met Argon2id + XChaCha20-Poly1305; die sleutel bly net in geheue terwyl die kluis ontsluit is.",
+    "footerNote": "Lêers tot 512 MB. Geënkripteer met Argon2id + XChaCha20-Poly1305; die sleutel bly net in geheue terwyl die kluis ontsluit is.",
     "cancel": "Kanselleer",
     "save": "Stoor"
   }

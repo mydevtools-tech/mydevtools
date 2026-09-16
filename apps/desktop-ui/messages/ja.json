@@ -5313,6 +5313,7 @@
     "collapse": "折りたたむ",
     "preview": "プレビュー",
     "noPreview": "この種類のファイルはプレビューできません — 書き出して別のアプリで開いてください。",
+    "previewTooLarge": "ファイルが {size} を超えています — 書き出して別のアプリで開いてください。",
     "export": "書き出す",
     "exportWarningTitle": "復号したコピーを書き出しますか？",
     "exportWarningBody": "選択した場所にファイルが暗号化されないまま書き込まれます。その端末上の何からでも読み取れる状態になります。",
@@ -5337,7 +5338,7 @@
     "dismiss": "閉じる",
     "viewGrid": "グリッド表示",
     "viewList": "リスト表示",
-    "footerNote": "20 MB までのファイル。Argon2id + XChaCha20-Poly1305 で暗号化され、鍵は保管庫のロック解除中のみメモリー上に保持されます。",
+    "footerNote": "512 MB までのファイル。Argon2id + XChaCha20-Poly1305 で暗号化され、鍵は保管庫のロック解除中のみメモリー上に保持されます。",
     "cancel": "キャンセル",
     "save": "保存"
   }

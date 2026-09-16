@@ -42,6 +42,10 @@ pub type MetaCache = std::collections::HashMap<String, CachedEntry>;
 const EXT: &str = "mydt";
 const TMP_EXT: &str = "mydt.tmp";
 
+/// Above this, imports serialize on `BIG_IMPORT` (see `import_file`).
+const BIG_FILE_BYTES: u64 = 64 * 1024 * 1024;
+static BIG_IMPORT: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 // ── Config (kv) ───────────────────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -368,6 +372,10 @@ fn import_file(c: &Ctx, src: &Path, logical_dir: &str, durable: bool) -> Fallibl
     if md.len() > MAX_FILE_BYTES {
         return Err(Fail(413, format!("file exceeds the {} MB limit", MAX_FILE_BYTES / 1024 / 1024)));
     }
+    // Encrypting holds plaintext + ciphertext in memory, so a batch of big
+    // files across N workers would multiply that. Big ones go one at a time.
+    // ponytail: one global lock; a per-worker byte budget if throughput matters.
+    let _big = (md.len() > BIG_FILE_BYTES).then(|| BIG_IMPORT.lock().unwrap_or_else(|e| e.into_inner()));
     let name = src
         .file_name()
         .and_then(|n| n.to_str())
@@ -786,12 +794,14 @@ mod tests {
         let tmp = Tmp::new("crud");
         let state = unlocked(&tmp);
         fs::write(tmp.path("config.json"), b"{\"a\":1}").unwrap();
-        fs::write(tmp.path("big.bin"), vec![0u8; (MAX_FILE_BYTES + 1) as usize]).unwrap();
+        // Sparse: the cap is checked from metadata, so no need to write the bytes.
+        fs::File::create(tmp.path("big.bin")).unwrap().set_len(MAX_FILE_BYTES + 1).unwrap();
 
         let res = import(&state, &[tmp.s("config.json"), tmp.s("big.bin"), tmp.s("missing.txt")], "proj");
         assert_eq!(res["imported"].as_array().unwrap().len(), 1);
         assert_eq!(res["errors"].as_array().unwrap().len(), 2);
-        assert!(res["errors"][0]["error"].as_str().unwrap().contains("20 MB"));
+        let too_big = format!("{} MB", MAX_FILE_BYTES / 1024 / 1024);
+        assert!(res["errors"][0]["error"].as_str().unwrap().contains(&too_big));
         let id = res["imported"][0]["id"].as_str().unwrap().to_string();
         assert_eq!(res["imported"][0]["name"], "config.json");
         assert_eq!(res["imported"][0]["dir"], "proj");
@@ -907,13 +917,9 @@ mod tests {
     }
 
     #[test]
-    fn exact_limit_accepted_and_missing_storage_dir_is_409() {
+    fn missing_storage_dir_is_409() {
         let tmp = Tmp::new("limit");
         let state = unlocked(&tmp);
-        fs::write(tmp.path("max.bin"), vec![1u8; MAX_FILE_BYTES as usize]).unwrap();
-        let res = import(&state, &[tmp.s("max.bin")], "");
-        assert_eq!(res["imported"].as_array().unwrap().len(), 1, "{}", res);
-        assert_eq!(res["imported"][0]["size"], MAX_FILE_BYTES);
 
         fs::remove_dir_all(tmp.path("store")).unwrap();
         let r = route(&state, "GET", "/api/v1/secure-files/settings", None).unwrap();
@@ -957,6 +963,21 @@ mod tests {
         // Lock clears the plaintext-metadata cache.
         lock(&state);
         assert!(state.sf_meta.lock().unwrap().is_none());
+    }
+
+    /// A file at the cap, encrypted for real (~90 s, ~1 GB peak RSS — ignored
+    /// by default): `cargo test --lib exact_limit_accepted -- --ignored`.
+    #[test]
+    #[ignore]
+    fn exact_limit_accepted() {
+        let tmp = Tmp::new("maxsize");
+        let state = unlocked(&tmp);
+        fs::write(tmp.path("max.bin"), vec![1u8; MAX_FILE_BYTES as usize]).unwrap();
+        let res = import(&state, &[tmp.s("max.bin")], "");
+        assert_eq!(res["imported"].as_array().unwrap().len(), 1, "{}", res);
+        assert_eq!(res["imported"][0]["size"], MAX_FILE_BYTES);
+        let id = res["imported"][0]["id"].as_str().unwrap().to_string();
+        assert_eq!(read_plaintext(&state, &id).unwrap().len(), MAX_FILE_BYTES as usize);
     }
 
     /// Manual scale check: `cargo test --lib scale_smoke_10k -- --ignored --nocapture`.

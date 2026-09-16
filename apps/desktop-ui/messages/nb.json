@@ -5313,6 +5313,7 @@
     "collapse": "Skjul",
     "preview": "Forhåndsvisning",
     "noPreview": "Ingen forhåndsvisning for denne filtypen — eksporter den for å åpne den i en annen app.",
+    "previewTooLarge": "Filen er større enn {size} — eksporter den for å åpne den i en annen app.",
     "export": "Eksporter",
     "exportWarningTitle": "Eksportere en dekryptert kopi?",
     "exportWarningBody": "Filen skrives ukryptert til stedet du velger. Alt på den enheten kan lese den.",
@@ -5337,7 +5338,7 @@
     "dismiss": "Lukk",
     "viewGrid": "Rutenettvisning",
     "viewList": "Listevisning",
-    "footerNote": "Filer opptil 20 MB. Kryptert med Argon2id + XChaCha20-Poly1305; nøkkelen finnes bare i minnet mens hvelvet er låst opp.",
+    "footerNote": "Filer opptil 512 MB. Kryptert med Argon2id + XChaCha20-Poly1305; nøkkelen finnes bare i minnet mens hvelvet er låst opp.",
     "cancel": "Avbryt",
     "save": "Lagre"
   }
