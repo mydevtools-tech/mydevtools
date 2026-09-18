@@ -5338,8 +5338,10 @@
     "dismiss": "Tutup",
     "viewGrid": "Tampilan kisi",
     "viewList": "Tampilan daftar",
-    "footerNote": "Berkas hingga 512 MB. Dienkripsi dengan Argon2id + XChaCha20-Poly1305; kunci hanya ada di memori selama brankas terbuka.",
+    "footerNote": "Berkas hingga 5 GB. Dienkripsi dengan Argon2id + XChaCha20-Poly1305; kunci hanya ada di memori selama brankas terbuka.",
     "cancel": "Batal",
+    "working": "{done} dari {total}",
+    "cancelled": "Dibatalkan.",
     "save": "Simpan"
   }
 }

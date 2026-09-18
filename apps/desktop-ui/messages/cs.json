@@ -5338,8 +5338,10 @@
     "dismiss": "Zavřít",
     "viewGrid": "Zobrazení mřížky",
     "viewList": "Zobrazení seznamu",
-    "footerNote": "Soubory do 512 MB. Šifrováno pomocí Argon2id + XChaCha20-Poly1305; klíč je v paměti jen po dobu odemčení trezoru.",
+    "footerNote": "Soubory do 5 GB. Šifrováno pomocí Argon2id + XChaCha20-Poly1305; klíč je v paměti jen po dobu odemčení trezoru.",
     "cancel": "Zrušit",
+    "working": "{done} z {total}",
+    "cancelled": "Zrušeno.",
     "save": "Uložit"
   }
 }

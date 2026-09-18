@@ -5338,8 +5338,10 @@
     "dismiss": "Descarta",
     "viewGrid": "Vista de quadrícula",
     "viewList": "Vista de llista",
-    "footerNote": "Fitxers de fins a 512 MB. Xifrats amb Argon2id + XChaCha20-Poly1305; la clau només és a la memòria mentre la caixa forta està desbloquejada.",
+    "footerNote": "Fitxers de fins a 5 GB. Xifrats amb Argon2id + XChaCha20-Poly1305; la clau només és a la memòria mentre la caixa forta està desbloquejada.",
     "cancel": "Cancel·la",
+    "working": "{done} de {total}",
+    "cancelled": "Cancel·lat.",
     "save": "Desa"
   }
 }

@@ -3244,8 +3244,10 @@
     "dismiss": "Dismiss",
     "viewGrid": "Grid view",
     "viewList": "List view",
-    "footerNote": "Files up to 512 MB. Encrypted with Argon2id + XChaCha20-Poly1305; the key lives in memory only while the vault is unlocked.",
+    "footerNote": "Files up to 5 GB. Encrypted with Argon2id + XChaCha20-Poly1305; the key lives in memory only while the vault is unlocked.",
     "cancel": "Cancel",
+    "working": "{done} of {total}",
+    "cancelled": "Cancelled.",
     "save": "Save"
   },
   "SnippetManager": {

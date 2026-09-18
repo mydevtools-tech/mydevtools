@@ -5338,8 +5338,10 @@
     "dismiss": "Dispensar",
     "viewGrid": "Visualização em grade",
     "viewList": "Visualização em lista",
-    "footerNote": "Arquivos de até 512 MB. Criptografados com Argon2id + XChaCha20-Poly1305; a chave fica na memória apenas enquanto o cofre está desbloqueado.",
+    "footerNote": "Arquivos de até 5 GB. Criptografados com Argon2id + XChaCha20-Poly1305; a chave fica na memória apenas enquanto o cofre está desbloqueado.",
     "cancel": "Cancelar",
+    "working": "{done} de {total}",
+    "cancelled": "Cancelado.",
     "save": "Salvar"
   }
 }

@@ -5338,8 +5338,10 @@
     "dismiss": "Ausblenden",
     "viewGrid": "Rasteransicht",
     "viewList": "Listenansicht",
-    "footerNote": "Dateien bis 512 MB. Verschlüsselt mit Argon2id + XChaCha20-Poly1305; der Schlüssel bleibt nur im Arbeitsspeicher, solange der Tresor entsperrt ist.",
+    "footerNote": "Dateien bis 5 GB. Verschlüsselt mit Argon2id + XChaCha20-Poly1305; der Schlüssel bleibt nur im Arbeitsspeicher, solange der Tresor entsperrt ist.",
     "cancel": "Abbrechen",
+    "working": "{done} von {total}",
+    "cancelled": "Abgebrochen.",
     "save": "Speichern"
   }
 }

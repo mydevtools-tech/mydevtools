@@ -5338,8 +5338,10 @@
     "dismiss": "Maak toe",
     "viewGrid": "Roosteraansig",
     "viewList": "Lysaansig",
-    "footerNote": "Lêers tot 512 MB. Geënkripteer met Argon2id + XChaCha20-Poly1305; die sleutel bly net in geheue terwyl die kluis ontsluit is.",
+    "footerNote": "Lêers tot 5 GB. Geënkripteer met Argon2id + XChaCha20-Poly1305; die sleutel bly net in geheue terwyl die kluis ontsluit is.",
     "cancel": "Kanselleer",
+    "working": "{done} van {total}",
+    "cancelled": "Gekanselleer.",
     "save": "Stoor"
   }
 }

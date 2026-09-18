@@ -5338,8 +5338,10 @@
     "dismiss": "Avfärda",
     "viewGrid": "Rutnätsvy",
     "viewList": "Listvy",
-    "footerNote": "Filer upp till 512 MB. Krypterade med Argon2id + XChaCha20-Poly1305; nyckeln finns bara i minnet medan valvet är upplåst.",
+    "footerNote": "Filer upp till 5 GB. Krypterade med Argon2id + XChaCha20-Poly1305; nyckeln finns bara i minnet medan valvet är upplåst.",
     "cancel": "Avbryt",
+    "working": "{done} av {total}",
+    "cancelled": "Avbruten.",
     "save": "Spara"
   }
 }

@@ -5338,8 +5338,10 @@
     "dismiss": "Tutup",
     "viewGrid": "Paparan grid",
     "viewList": "Paparan senarai",
-    "footerNote": "Fail sehingga 512 MB. Disulitkan dengan Argon2id + XChaCha20-Poly1305; kunci hanya berada dalam ingatan selagi peti besi dibuka.",
+    "footerNote": "Fail sehingga 5 GB. Disulitkan dengan Argon2id + XChaCha20-Poly1305; kunci hanya berada dalam ingatan selagi peti besi dibuka.",
     "cancel": "Batal",
+    "working": "{done} daripada {total}",
+    "cancelled": "Dibatalkan.",
     "save": "Simpan"
   }
 }

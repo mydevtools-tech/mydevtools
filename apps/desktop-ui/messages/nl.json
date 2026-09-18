@@ -5338,8 +5338,10 @@
     "dismiss": "Sluiten",
     "viewGrid": "Rasterweergave",
     "viewList": "Lijstweergave",
-    "footerNote": "Bestanden tot 512 MB. Versleuteld met Argon2id + XChaCha20-Poly1305; de sleutel blijft alleen in het geheugen zolang de kluis ontgrendeld is.",
+    "footerNote": "Bestanden tot 5 GB. Versleuteld met Argon2id + XChaCha20-Poly1305; de sleutel blijft alleen in het geheugen zolang de kluis ontgrendeld is.",
     "cancel": "Annuleren",
+    "working": "{done} van {total}",
+    "cancelled": "Geannuleerd.",
     "save": "Opslaan"
   }
 }

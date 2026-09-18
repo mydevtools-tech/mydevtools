@@ -6,11 +6,11 @@
 
 use std::collections::HashMap;
 use std::fs;
-use std::io::Write;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process;
 
-use mydt::{CryptoError, FileMeta, KdfParams, MAX_FILE_BYTES, MAX_OBJECT_BYTES, SALT_LEN};
+use mydt::{CryptoError, FileMeta, KdfParams, HEADER_LEN, MAX_FILE_BYTES, MAX_OBJECT_BYTES, SALT_LEN};
 use zeroize::Zeroizing;
 
 const USAGE: &str = "\
@@ -81,12 +81,20 @@ fn password() -> Result<Zeroizing<String>, String> {
     rpassword::prompt_password("Password: ").map(Zeroizing::new).map_err(|e| e.to_string())
 }
 
-fn read_object(path: &Path) -> Result<Vec<u8>, String> {
-    let md = fs::metadata(path).map_err(|e| format!("{}: {e}", path.display()))?;
+/// Header + sealed metadata only. Everything but `decrypt` works off this, so
+/// inspecting a folder of multi-GB objects stays a few KB of reads.
+fn read_head(path: &Path) -> Result<Vec<u8>, String> {
+    let fail = |e: std::io::Error| format!("{}: {e}", path.display());
+    let md = fs::metadata(path).map_err(fail)?;
     if md.len() > MAX_OBJECT_BYTES {
         return Err(format!("{}: larger than any valid .mydt object", path.display()));
     }
-    fs::read(path).map_err(|e| format!("{}: {e}", path.display()))
+    let mut f = fs::File::open(path).map_err(fail)?;
+    let mut head = vec![0u8; HEADER_LEN];
+    f.read_exact(&mut head).map_err(|_| format!("{}: not a .mydt file", path.display()))?;
+    let n = mydt::meta_len(&head).map_err(|e| format!("{}: {e}", path.display()))?;
+    Read::by_ref(&mut f).take(n as u64).read_to_end(&mut head).map_err(fail)?;
+    Ok(head)
 }
 
 fn hex(bytes: &[u8]) -> String {
@@ -124,42 +132,66 @@ fn encrypt(a: Args) -> Result<(), String> {
         .ok_or("source has no usable file name")?
         .to_string();
     let params = match a.opts.get("params-from") {
-        Some(p) => mydt::kdf_params(&read_object(Path::new(p))?).map_err(|e| e.to_string())?,
+        Some(p) => mydt::kdf_params(&read_head(Path::new(p))?).map_err(|e| e.to_string())?,
         None => KdfParams::generate(),
     };
-    let plaintext = Zeroizing::new(fs::read(src).map_err(|e| e.to_string())?);
     let meta = FileMeta {
         name,
         dir: a.opts.get("dir").cloned().unwrap_or_default().trim_matches('/').to_string(),
-        size: plaintext.len() as u64,
+        size: md.len(),
         mtime: mtime_ms(&md),
         imported_at: now_ms(),
     };
     let kek = mydt::derive_kek(password()?.as_bytes(), &params).map_err(|e| e.to_string())?;
-    let bytes = mydt::encrypt_file(&kek, &params, &meta, &plaintext).map_err(|e| e.to_string())?;
     let out = match a.opts.get("o") {
         Some(o) => PathBuf::from(o),
         None => PathBuf::from(format!("{}.mydt", hex(&mydt::random::<16>()))),
     };
-    fs::write(&out, bytes).map_err(|e| format!("{}: {e}", out.display()))?;
+    let reader = fs::File::open(src).map_err(|e| format!("{}: {e}", src.display()))?;
+    let writer = fs::File::create(&out).map_err(|e| format!("{}: {e}", out.display()))?;
+    mydt::encrypt_stream(
+        &kek,
+        &params,
+        &meta,
+        MAX_FILE_BYTES,
+        std::io::BufReader::new(reader),
+        std::io::BufWriter::new(writer),
+    )
+    .map_err(|e| {
+        let _ = fs::remove_file(&out);
+        e.to_string()
+    })?;
     println!("{}", out.display());
     Ok(())
 }
 
 fn decrypt(a: Args) -> Result<(), String> {
     let src = positional(&a, "file.mydt")?;
-    let bytes = read_object(src)?;
-    let params = mydt::kdf_params(&bytes).map_err(|e| e.to_string())?;
+    let head = read_head(src)?;
+    let params = mydt::kdf_params(&head).map_err(|e| e.to_string())?;
     let kek = mydt::derive_kek(password()?.as_bytes(), &params).map_err(|e| e.to_string())?;
-    let (meta, plaintext) = mydt::decrypt_file(&kek, &params.salt, &bytes).map_err(|e| e.to_string())?;
+    // The destination name can come from the sealed metadata, so read that
+    // before streaming — it costs one extra pass over the header.
+    let meta = mydt::read_meta(&kek, &params.salt, &head).map_err(|e| e.to_string())?;
+    let object = fs::File::open(src).map(std::io::BufReader::new).map_err(|e| format!("{}: {e}", src.display()))?;
+
     match a.opts.get("o").map(String::as_str) {
-        Some("-") => std::io::stdout().write_all(&plaintext).map_err(|e| e.to_string()),
+        Some("-") => {
+            mydt::decrypt_stream(&kek, &params.salt, object, std::io::stdout().lock()).map_err(|e| e.to_string())?;
+            Ok(())
+        }
         other => {
             let out = other.map(PathBuf::from).unwrap_or_else(|| PathBuf::from(&meta.name));
             if out.exists() && !a.flags.iter().any(|f| f == "force") {
                 return Err(format!("{} exists (use --force to overwrite)", out.display()));
             }
-            fs::write(&out, &*plaintext).map_err(|e| format!("{}: {e}", out.display()))?;
+            let dst = fs::File::create(&out).map_err(|e| format!("{}: {e}", out.display()))?;
+            // A failed decrypt leaves a partial file behind, and it is
+            // plaintext — remove it rather than hand back half a secret.
+            mydt::decrypt_stream(&kek, &params.salt, object, std::io::BufWriter::new(dst)).map_err(|e| {
+                let _ = fs::remove_file(&out);
+                e.to_string()
+            })?;
             eprintln!("{} -> {}", src.display(), out.display());
             Ok(())
         }
@@ -168,18 +200,18 @@ fn decrypt(a: Args) -> Result<(), String> {
 
 fn info(a: Args) -> Result<(), String> {
     let src = positional(&a, "file.mydt")?;
-    let bytes = read_object(src)?;
-    let params = mydt::kdf_params(&bytes).map_err(|e| e.to_string())?;
-    let meta_len = mydt::meta_len(&bytes).map_err(|e| e.to_string())?;
+    let head = read_head(src)?;
+    let params = mydt::kdf_params(&head).map_err(|e| e.to_string())?;
+    let meta_len = mydt::meta_len(&head).map_err(|e| e.to_string())?;
     println!("file:      {}", src.display());
-    println!("format:    MYDT v{}", bytes[4]);
-    println!("size:      {} bytes", bytes.len());
+    println!("format:    MYDT v{}", head[4]);
+    println!("size:      {} bytes", fs::metadata(src).map(|m| m.len()).unwrap_or(0));
     println!("salt:      {}", hex(&params.salt));
     println!("argon2id:  m={} KiB t={} p={}", params.m_cost, params.t_cost, params.p_cost);
     println!("meta_len:  {meta_len}");
     if a.flags.iter().any(|f| f == "unlock") || std::env::var_os("MYDT_PASSWORD").is_some() {
         let kek = mydt::derive_kek(password()?.as_bytes(), &params).map_err(|e| e.to_string())?;
-        let m = mydt::read_meta(&kek, &params.salt, &bytes).map_err(|e| e.to_string())?;
+        let m = mydt::read_meta(&kek, &params.salt, &head).map_err(|e| e.to_string())?;
         println!("name:      {}", m.name);
         println!("dir:       {}", if m.dir.is_empty() { "/" } else { &m.dir });
         println!("plaintext: {} bytes", m.size);
@@ -203,7 +235,7 @@ fn ls(a: Args) -> Result<(), String> {
     let mut rows = Vec::new();
     for path in entries {
         let id = path.file_stem().and_then(|s| s.to_str()).unwrap_or("?").to_string();
-        let res = read_object(&path).and_then(|bytes| {
+        let res = read_head(&path).and_then(|bytes| {
             let params = mydt::kdf_params(&bytes).map_err(|e| e.to_string())?;
             let kek = match keks.get(&params.salt) {
                 Some(k) => k.clone(),

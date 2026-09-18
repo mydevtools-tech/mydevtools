@@ -5338,8 +5338,10 @@
     "dismiss": "Ignorer",
     "viewGrid": "Vue en grille",
     "viewList": "Vue en liste",
-    "footerNote": "Fichiers jusqu'à 512 Mo. Chiffrés avec Argon2id + XChaCha20-Poly1305 ; la clé ne réside en mémoire que pendant le déverrouillage du coffre-fort.",
+    "footerNote": "Fichiers jusqu'à 5 Go. Chiffrés avec Argon2id + XChaCha20-Poly1305 ; la clé ne réside en mémoire que pendant le déverrouillage du coffre-fort.",
     "cancel": "Annuler",
+    "working": "{done} sur {total}",
+    "cancelled": "Annulé.",
     "save": "Enregistrer"
   }
 }

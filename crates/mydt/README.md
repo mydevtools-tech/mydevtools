@@ -13,11 +13,18 @@ CLI writes opens in the app and vice versa.
 let params = mydt::KdfParams::generate();               // random salt, default costs
 let kek = mydt::derive_kek(b"password", &params)?;      // Argon2id, once per salt
 let meta = mydt::FileMeta { name: "a.env".into(), dir: "".into(), size: 3, mtime: 0, imported_at: 0 };
-let object = mydt::encrypt_file(&kek, &params, &meta, b"x=1")?;
+
+// Reader in, writer out: a multi-GB file moves through a fixed-size buffer.
+let mut object = Vec::new();
+mydt::encrypt_stream(&kek, &params, &meta, mydt::MAX_FILE_BYTES, &b"x=1"[..], &mut object)?;
 
 let params = mydt::kdf_params(&object)?;                // read salt/costs back
-let (meta, plaintext) = mydt::decrypt_file(&kek, &params.salt, &object)?;
+let mut plaintext = Vec::new();
+let meta = mydt::decrypt_stream(&kek, &params.salt, &object[..], &mut plaintext)?;
 ```
+
+`decrypt_stream` reads both format versions; `encrypt_stream` always writes the
+current one.
 
 ## CLI
 
@@ -39,5 +46,7 @@ as belonging to another vault.
 
 ## Tests
 
-`cargo test` — round trips, tamper/truncation/garbage sweep, wrong key, foreign
-salt, 20 MiB payload, nonce freshness.
+`cargo test` — round trips across chunk boundaries, reordered/dropped/duplicated
+chunks, tamper/truncation/garbage sweep, wrong key, foreign salt, version-1
+compatibility, nonce freshness. A cap-sized (5 GiB) round trip is behind
+`--ignored`: `cargo test max_size_payload_roundtrips -- --ignored`.

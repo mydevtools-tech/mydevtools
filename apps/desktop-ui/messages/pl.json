@@ -5338,8 +5338,10 @@
     "dismiss": "Odrzuć",
     "viewGrid": "Widok siatki",
     "viewList": "Widok listy",
-    "footerNote": "Pliki do 512 MB. Szyfrowanie Argon2id + XChaCha20-Poly1305; klucz pozostaje w pamięci tylko wtedy, gdy sejf jest odblokowany.",
+    "footerNote": "Pliki do 5 GB. Szyfrowanie Argon2id + XChaCha20-Poly1305; klucz pozostaje w pamięci tylko wtedy, gdy sejf jest odblokowany.",
     "cancel": "Anuluj",
+    "working": "{done} z {total}",
+    "cancelled": "Anulowano.",
     "save": "Zapisz"
   }
 }

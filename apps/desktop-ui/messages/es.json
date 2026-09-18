@@ -5338,8 +5338,10 @@
     "dismiss": "Descartar",
     "viewGrid": "Vista de cuadrícula",
     "viewList": "Vista de lista",
-    "footerNote": "Archivos de hasta 512 MB. Cifrados con Argon2id + XChaCha20-Poly1305; la clave solo permanece en memoria mientras la bóveda está desbloqueada.",
+    "footerNote": "Archivos de hasta 5 GB. Cifrados con Argon2id + XChaCha20-Poly1305; la clave solo permanece en memoria mientras la bóveda está desbloqueada.",
     "cancel": "Cancelar",
+    "working": "{done} de {total}",
+    "cancelled": "Cancelado.",
     "save": "Guardar"
   }
 }

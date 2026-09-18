@@ -55,9 +55,11 @@ import {
 } from "@/lib/secure-files"
 import type { StorageTotals } from "@/lib/secure-files-api"
 import {
+  cancelSecureFilesOp,
   deleteSecureFile,
   deleteSecureFolder,
   exportSecureFile,
+  getSecureFilesProgress,
   getSecureFilesSettings,
   importSecureFiles,
   listSecureFiles,
@@ -141,6 +143,8 @@ export function SecureFilesTool() {
   const [view, setView] = useState<"list" | "grid">(() => (safeGetItem(VIEW_KEY) === "grid" ? "grid" : "list"))
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const cancelled = useRef(false)
   const [preview, setPreview] = useState<PreviewState | null>(null)
   const [pathDialog, setPathDialog] = useState<PathDialogState | null>(null)
   const [dismissedErrors, setDismissedErrors] = useState(() => safeGetItem(DISMISSED_ERRORS_KEY) ?? "")
@@ -191,18 +195,54 @@ export function SecureFilesTool() {
   const run = useCallback(
     async (fn: () => Promise<string | void>) => {
       setBusy(true)
+      cancelled.current = false
       try {
         const msg = await fn()
         if (msg) toast.success(msg)
         await reload()
       } catch (e) {
-        toast.error(errMsg(e))
+        // A cancel surfaces as a plain stream error; the user already knows why.
+        if (cancelled.current) toast.info(t("cancelled"))
+        else toast.error(errMsg(e))
       } finally {
         setBusy(false)
+        setProgress(null)
       }
     },
-    [reload],
+    [reload, t],
   )
+
+  // Multi-GB files take long enough that a disabled toolbar is not an answer.
+  // The backend counts plaintext bytes; polling beats plumbing an event channel
+  // through the local API, which is request/response only.
+  useEffect(() => {
+    if (!busy) return
+    let live = true
+    const tick = async () => {
+      try {
+        const p = await getSecureFilesProgress()
+        if (live) setProgress(p.total > 0 ? p : null)
+      } catch {
+        // The listing refresh at the end reports anything that actually broke.
+      }
+    }
+    void tick()
+    const timer = setInterval(tick, 400)
+    return () => {
+      live = false
+      clearInterval(timer)
+    }
+  }, [busy])
+
+  const cancelTransfer = async () => {
+    cancelled.current = true
+    setProgress(null)
+    try {
+      await cancelSecureFilesOp()
+    } catch (e) {
+      toast.error(errMsg(e))
+    }
+  }
 
   useEffect(() => {
     safeSetJSON(EXTRA_DIRS_KEY, extraDirs)
@@ -254,6 +294,12 @@ export function SecureFilesTool() {
       const r = await importSecureFiles(paths, currentDir)
       // Empty folders produce no entries; keep them visible in the tree.
       if (r.dirs.length > 0) setExtraDirs((prev) => [...new Set([...prev, ...r.dirs])])
+      // A cancelled import reports the files it did not take as errors; the
+      // user asked for that, so it is one info toast, not a list of failures.
+      if (cancelled.current) {
+        toast.info(t("cancelled"))
+        return undefined
+      }
       for (const e of r.errors) toast.error(`${baseName(e.path)}: ${e.error}`)
       if (r.imported.length > 0) return t("importedCount", { count: r.imported.length })
       if (r.dirs.length > 0 && r.errors.length === 0) return t("emptyFolderAdded")
@@ -617,6 +663,23 @@ export function SecureFilesTool() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {progress && (
+          <div className="flex shrink-0 items-center gap-3 border-b px-4 py-2 text-xs">
+            <span className="shrink-0 tabular-nums text-muted-foreground">
+              {t("working", { done: formatBytes(progress.done), total: formatBytes(progress.total) })}
+            </span>
+            <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-300"
+                style={{ width: `${Math.min(100, Math.round((progress.done / Math.max(1, progress.total)) * 100))}%` }}
+              />
+            </div>
+            <Button size="sm" variant="ghost" className="h-6 shrink-0 px-2" onClick={cancelTransfer}>
+              {t("cancel")}
+            </Button>
+          </div>
+        )}
 
         {errors.length > 0 && errorsKey(errors) !== dismissedErrors && (
           <div className="mx-4 mt-3 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">

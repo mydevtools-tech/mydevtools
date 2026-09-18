@@ -5338,8 +5338,10 @@
     "dismiss": "Afvis",
     "viewGrid": "Gittervisning",
     "viewList": "Listevisning",
-    "footerNote": "Filer op til 512 MB. Krypteret med Argon2id + XChaCha20-Poly1305; nøglen findes kun i hukommelsen, mens boksen er låst op.",
+    "footerNote": "Filer op til 5 GB. Krypteret med Argon2id + XChaCha20-Poly1305; nøglen findes kun i hukommelsen, mens boksen er låst op.",
     "cancel": "Annuller",
+    "working": "{done} af {total}",
+    "cancelled": "Annulleret.",
     "save": "Gem"
   }
 }

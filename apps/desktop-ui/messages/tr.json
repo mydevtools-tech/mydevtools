@@ -5338,8 +5338,10 @@
     "dismiss": "Kapat",
     "viewGrid": "Izgara görünümü",
     "viewList": "Liste görünümü",
-    "footerNote": "512 MB'a kadar dosyalar. Argon2id + XChaCha20-Poly1305 ile şifrelenir; anahtar yalnızca kasa açıkken bellekte tutulur.",
+    "footerNote": "5 GB'a kadar dosyalar. Argon2id + XChaCha20-Poly1305 ile şifrelenir; anahtar yalnızca kasa açıkken bellekte tutulur.",
     "cancel": "İptal",
+    "working": "{total} / {done}",
+    "cancelled": "İptal edildi.",
     "save": "Kaydet"
   }
 }

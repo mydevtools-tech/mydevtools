@@ -30,6 +30,10 @@ export const replaceSecureFile = (id: string, path: string) =>
 export const exportSecureFile = (id: string, path: string) =>
   apiRequest<void>("POST", `${BASE}/files/${id}/export`, { path })
 export const deleteSecureFile = (id: string) => apiRequest<void>("DELETE", `${BASE}/files/${id}`)
+/** Plaintext bytes moved by the stream in flight; `total` 0 = nothing running. */
+export const getSecureFilesProgress = () => apiRequest<{ done: number; total: number }>("GET", `${BASE}/progress`)
+/** Asks the stream in flight to stop; it unwinds and leaves the store untouched. */
+export const cancelSecureFilesOp = () => apiRequest<void>("POST", `${BASE}/progress/cancel`)
 export const renameSecureFolder = (from: string, to: string) =>
   apiRequest<{ updated: number }>("POST", `${BASE}/folders/rename`, { from, to })
 export const deleteSecureFolder = (dir: string) =>

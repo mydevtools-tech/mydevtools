@@ -5338,8 +5338,10 @@
     "dismiss": "Bỏ qua",
     "viewGrid": "Dạng lưới",
     "viewList": "Dạng danh sách",
-    "footerNote": "Tệp tối đa 512 MB. Mã hóa bằng Argon2id + XChaCha20-Poly1305; khóa chỉ nằm trong bộ nhớ khi kho đang mở khóa.",
+    "footerNote": "Tệp tối đa 5 GB. Mã hóa bằng Argon2id + XChaCha20-Poly1305; khóa chỉ nằm trong bộ nhớ khi kho đang mở khóa.",
     "cancel": "Hủy",
+    "working": "{done} trên {total}",
+    "cancelled": "Đã hủy.",
     "save": "Lưu"
   }
 }

@@ -5338,8 +5338,10 @@
     "dismiss": "閉じる",
     "viewGrid": "グリッド表示",
     "viewList": "リスト表示",
-    "footerNote": "512 MB までのファイル。Argon2id + XChaCha20-Poly1305 で暗号化され、鍵は保管庫のロック解除中のみメモリー上に保持されます。",
+    "footerNote": "5 GB までのファイル。Argon2id + XChaCha20-Poly1305 で暗号化され、鍵は保管庫のロック解除中のみメモリー上に保持されます。",
     "cancel": "キャンセル",
+    "working": "{total} 中 {done}",
+    "cancelled": "キャンセルしました。",
     "save": "保存"
   }
 }

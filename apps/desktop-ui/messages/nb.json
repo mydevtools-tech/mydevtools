@@ -5338,8 +5338,10 @@
     "dismiss": "Lukk",
     "viewGrid": "Rutenettvisning",
     "viewList": "Listevisning",
-    "footerNote": "Filer opptil 512 MB. Kryptert med Argon2id + XChaCha20-Poly1305; nøkkelen finnes bare i minnet mens hvelvet er låst opp.",
+    "footerNote": "Filer opptil 5 GB. Kryptert med Argon2id + XChaCha20-Poly1305; nøkkelen finnes bare i minnet mens hvelvet er låst opp.",
     "cancel": "Avbryt",
+    "working": "{done} av {total}",
+    "cancelled": "Avbrutt.",
     "save": "Lagre"
   }
 }

@@ -5338,8 +5338,10 @@
     "dismiss": "Ignora",
     "viewGrid": "Vista a griglia",
     "viewList": "Vista a elenco",
-    "footerNote": "File fino a 512 MB. Cifrati con Argon2id + XChaCha20-Poly1305; la chiave resta in memoria solo finché la cassaforte è sbloccata.",
+    "footerNote": "File fino a 5 GB. Cifrati con Argon2id + XChaCha20-Poly1305; la chiave resta in memoria solo finché la cassaforte è sbloccata.",
     "cancel": "Annulla",
+    "working": "{done} di {total}",
+    "cancelled": "Annullato.",
     "save": "Salva"
   }
 }
