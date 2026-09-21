@@ -15,7 +15,8 @@ use std::collections::HashSet;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
+use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
+use std::sync::{Arc, Mutex};
 
 use base64::Engine;
 use rusqlite::{Connection, OptionalExtension};
@@ -174,58 +175,116 @@ fn too_big() -> Fail {
 
 // ── Progress (polled by the UI while a stream runs) ───────────────────────
 
-/// Plaintext bytes moved by the operation in flight. Every mutation blocks the
-/// tool's UI, so a single counter describes whatever is happening.
-// ponytail: one global counter; per-operation ids if two can ever overlap.
-static DONE: AtomicU64 = AtomicU64::new(0);
-static TOTAL: AtomicU64 = AtomicU64::new(0);
-static CANCEL: AtomicBool = AtomicBool::new(false);
+#[derive(Clone, Copy, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OperationKind { Import, Export, Rename, Replace, FolderRename }
 
-/// Publishes `total` for the duration of a streaming operation and clears the
-/// counters when it ends, however it ends.
-struct Progress;
+#[derive(Clone, Copy, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OperationStatus { Running, Completed, Cancelled, Failed }
 
-impl Progress {
-    fn start(total: u64) -> Self {
-        CANCEL.store(false, Relaxed);
-        DONE.store(0, Relaxed);
-        TOTAL.store(total, Relaxed);
-        Progress
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OperationSnapshot {
+    id: String,
+    kind: OperationKind,
+    status: OperationStatus,
+    done: u64,
+    total: u64,
+    files_completed: Option<u64>,
+    files_total: Option<u64>,
+    error: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct IdleOperationSnapshot { id: Option<String>, status: &'static str, done: u64, total: u64, files_completed: Option<u64>, files_total: Option<u64> }
+
+struct Operation {
+    snapshot: Mutex<OperationSnapshot>,
+    cancelled: AtomicBool,
+}
+
+#[derive(Default)]
+struct OperationRegistryState { next_id: u64, active: Option<Arc<Operation>> }
+
+/// Owns exactly one secure-files mutation. The UI already serializes these
+/// mutations; refusing overlap prevents one cancel request targeting another.
+#[derive(Default)]
+pub struct OperationRegistry { state: Mutex<OperationRegistryState> }
+
+pub struct OperationGuard { registry: Arc<OperationRegistry>, operation: Arc<Operation> }
+
+impl OperationRegistry {
+    fn start(self: &Arc<Self>, kind: OperationKind, total: u64, files_total: Option<u64>) -> Fallible<OperationGuard> {
+        let mut state = self.state.lock().unwrap();
+        if state.active.is_some() { return Err(Fail(409, "another secure-files operation is already running".into())); }
+        state.next_id += 1;
+        let operation = Arc::new(Operation {
+            snapshot: Mutex::new(OperationSnapshot { id: format!("op_{:x}", state.next_id), kind, status: OperationStatus::Running, done: 0, total, files_completed: files_total.map(|_| 0), files_total, error: None }),
+            cancelled: AtomicBool::new(false),
+        });
+        state.active = Some(operation.clone());
+        Ok(OperationGuard { registry: self.clone(), operation })
+    }
+
+    fn current_snapshot(&self) -> Value {
+        self.state.lock().unwrap().active.as_ref().map(|op| serde_json::to_value(op.snapshot.lock().unwrap().clone()).unwrap()).unwrap_or_else(|| json!(IdleOperationSnapshot { id: None, status: "idle", done: 0, total: 0, files_completed: None, files_total: None }))
+    }
+
+    fn cancel(&self, id: Option<&str>) -> bool {
+        let state = self.state.lock().unwrap();
+        let Some(operation) = state.active.as_ref() else { return false };
+        if id.is_some_and(|id| id != operation.snapshot.lock().unwrap().id) { return false; }
+        operation.cancelled.store(true, Relaxed);
+        true
+    }
+
+    fn clear(&self, operation: &Arc<Operation>) {
+        let mut state = self.state.lock().unwrap();
+        if state.active.as_ref().is_some_and(|active| Arc::ptr_eq(active, operation)) { state.active = None; }
     }
 }
 
-impl Drop for Progress {
+impl OperationGuard {
+    fn check_cancelled(&self) -> std::io::Result<()> {
+        if self.operation.cancelled.load(Relaxed) { Err(std::io::Error::other("cancelled")) } else { Ok(()) }
+    }
+    fn tick(&self, n: usize) -> std::io::Result<usize> {
+        self.check_cancelled()?;
+        self.operation.snapshot.lock().unwrap().done += n as u64;
+        Ok(n)
+    }
+    fn is_cancelled(&self) -> bool { self.operation.cancelled.load(Relaxed) }
+    fn file_completed(&self) { if let Some(n) = self.operation.snapshot.lock().unwrap().files_completed.as_mut() { *n += 1; } }
+    fn snapshot(&self) -> OperationSnapshot { self.operation.snapshot.lock().unwrap().clone() }
+    fn complete(&self) { self.operation.snapshot.lock().unwrap().status = OperationStatus::Completed; }
+    fn fail(&self, error: &str) { let mut snapshot = self.operation.snapshot.lock().unwrap(); snapshot.status = if self.operation.cancelled.load(Relaxed) { OperationStatus::Cancelled } else { OperationStatus::Failed }; snapshot.error = Some(error.into()); }
+}
+
+impl Drop for OperationGuard {
     fn drop(&mut self) {
-        TOTAL.store(0, Relaxed);
-        DONE.store(0, Relaxed);
-        CANCEL.store(false, Relaxed);
+        if self.operation.snapshot.lock().unwrap().status == OperationStatus::Running { self.fail("operation ended unexpectedly"); }
+        self.registry.clear(&self.operation);
     }
 }
 
 /// Counts plaintext bytes as they pass, and turns a cancel request into an I/O
 /// error so the operation unwinds through the same cleanup as any failure —
 /// the temp file goes, the stored object is untouched.
-struct Meter<T>(T);
+struct Meter<'a, T>(T, &'a OperationGuard);
 
-fn tick(n: usize) -> std::io::Result<usize> {
-    if CANCEL.load(Relaxed) {
-        return Err(std::io::Error::other("cancelled"));
-    }
-    DONE.fetch_add(n as u64, Relaxed);
-    Ok(n)
-}
-
-impl<R: Read> Read for Meter<R> {
+impl<R: Read> Read for Meter<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let n = self.0.read(buf)?;
-        tick(n)
+        self.1.tick(n)
     }
 }
 
-impl<W: std::io::Write> std::io::Write for Meter<W> {
+impl<W: std::io::Write> std::io::Write for Meter<'_, W> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let n = self.0.write(buf)?;
-        tick(n)
+        self.1.tick(n)
     }
     fn flush(&mut self) -> std::io::Result<()> {
         self.0.flush()
@@ -457,7 +516,7 @@ fn mtime_ms(md: &fs::Metadata) -> i64 {
         .unwrap_or_else(now_ms)
 }
 
-fn import_file(c: &Ctx, src: &Path, logical_dir: &str, durable: bool) -> Fallible<Entry> {
+fn import_file(c: &Ctx, src: &Path, logical_dir: &str, durable: bool, operation: &OperationGuard) -> Fallible<Entry> {
     let md = fs::metadata(src)?;
     if md.len() > MAX_FILE_BYTES {
         return Err(too_big());
@@ -476,7 +535,7 @@ fn import_file(c: &Ctx, src: &Path, logical_dir: &str, durable: bool) -> Fallibl
         imported_at: now_ms(),
     };
     let id = new_id();
-    let physical = encrypt_object(c, &id, &meta, Meter(fs::File::open(src)?), durable)?;
+    let physical = encrypt_object(c, &id, &meta, Meter(fs::File::open(src)?, operation), durable)?;
     Ok(Entry { id, meta, physical })
 }
 
@@ -514,12 +573,10 @@ fn collect_import(src: &Path, logical_dir: &str, out: &mut Vec<(PathBuf, String)
 
 /// Encrypt+write the collected targets across threads. Per-file fsync is
 /// skipped; the caller fsyncs the storage directory once per batch.
-fn import_batch(c: &Ctx, targets: &[(PathBuf, String)], imported: &mut Vec<Entry>, errors: &mut Vec<Value>) {
+fn import_batch(c: &Ctx, targets: &[(PathBuf, String)], imported: &mut Vec<Entry>, errors: &mut Vec<Value>, operation: &OperationGuard) {
     if targets.is_empty() {
         return;
     }
-    // Whole batch, not per file: the UI asks for one number while it waits.
-    let _progress = Progress::start(targets.iter().filter_map(|(p, _)| fs::metadata(p).ok()).map(|m| m.len()).sum());
     let workers = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).min(8);
     let chunk = targets.len().div_ceil(workers).max(1);
     std::thread::scope(|s| {
@@ -530,8 +587,8 @@ fn import_batch(c: &Ctx, targets: &[(PathBuf, String)], imported: &mut Vec<Entry
                     let mut ok = Vec::new();
                     let mut errs = Vec::new();
                     for (src, logical) in slice {
-                        match import_file(c, src, logical, false) {
-                            Ok(e) => ok.push(e),
+                        match import_file(c, src, logical, false, operation) {
+                            Ok(e) => { operation.file_completed(); ok.push(e) },
                             Err(Fail(_, msg)) => errs.push(json!({ "path": src.to_string_lossy(), "error": msg })),
                         }
                     }
@@ -556,21 +613,24 @@ fn import_batch(c: &Ctx, targets: &[(PathBuf, String)], imported: &mut Vec<Entry
 /// and never through plaintext on disk.
 // ponytail: O(size) rename; only a container with a trailing, independently
 // sealed metadata block could make it O(1), and that is a format redesign.
-fn rewrite(c: &Ctx, id: &str, f: impl FnOnce(&mut FileMeta)) -> Fallible<Entry> {
+fn rewrite(c: &Ctx, id: &str, operation: &OperationGuard, f: impl FnOnce(&mut FileMeta)) -> Fallible<Entry> {
+    operation.check_cancelled()?;
     let (mut meta, _) = read_entry_meta(c, id)?;
     f(&mut meta);
-    let _progress = Progress::start(meta.size);
     let physical = write_atomic(&c.dir, id, true, |out| {
         let (plaintext, sink) = std::io::pipe()?;
         std::thread::scope(|s| {
             let decrypt = s.spawn(|| decrypt_object(c, id, sink));
             // Encrypt first: dropping the pipe reader on failure ends the
             // decrypt side with a broken pipe instead of blocking it forever.
-            let sealed = crypto::encrypt_stream(&c.kek, &c.params, &meta, MAX_FILE_BYTES, Meter(plaintext), out);
-            // A decrypt that fails part-way looks like a clean end of input to
-            // the encryptor, so its result decides before the sealed object's.
-            decrypt.join().expect("decrypt worker panicked")?;
+            let sealed = crypto::encrypt_stream(&c.kek, &c.params, &meta, MAX_FILE_BYTES, Meter(plaintext, operation), out);
+            let decrypted = decrypt.join().expect("decrypt worker panicked");
+            // A failed encrypt (cancel, disk full) is the cause, so it reports
+            // first — the decrypt side then only dies of the broken pipe. A
+            // decrypt that fails part-way looks like a clean end of input to
+            // the encryptor, so a sealed object still defers to its result.
             sealed?;
+            decrypted?;
             Ok(())
         })
     })?;
@@ -657,10 +717,16 @@ fn dispatch(state: &AppState, method: &str, rest: &str, body: Option<&str>) -> F
             let (files, errors) = list_entries(state, &c)?;
             ok(&json!({ "totals": totals(&files), "files": files, "errors": errors }))
         }
-        // Polled while a stream runs; `total` of 0 means nothing is running.
-        ("GET", "/progress") => ok(&json!({ "done": DONE.load(Relaxed), "total": TOTAL.load(Relaxed) })),
+        // Polled while a stream runs; idle has `total` 0 and no operation ID.
+        ("GET", "/progress") => ok(&state.secure_file_operations.current_snapshot()),
         ("POST", "/progress/cancel") => {
-            CANCEL.store(true, Relaxed);
+            #[derive(Deserialize, Default)]
+            #[serde(rename_all = "camelCase")]
+            struct Body { operation_id: Option<String> }
+            let operation_id = body.map(serde_json::from_str::<Body>).transpose().map_err(|_| bad("invalid cancel request"))?.unwrap_or_default().operation_id;
+            if !state.secure_file_operations.cancel(operation_id.as_deref()) && operation_id.is_some() {
+                return Err(Fail(409, "secure-files operation is no longer running".into()));
+            }
             Ok(ApiResponse::empty(204))
         }
         ("POST", "/files/import") => {
@@ -677,12 +743,15 @@ fn dispatch(state: &AppState, method: &str, rest: &str, body: Option<&str>) -> F
             for p in &paths {
                 collect_import(Path::new(p), &dir, &mut targets, &mut errors, &mut dirs);
             }
+            let total = targets.iter().filter_map(|(p, _)| fs::metadata(p).ok()).map(|m| m.len()).sum();
+            let operation = state.secure_file_operations.start(OperationKind::Import, total, Some(targets.len() as u64))?;
             let mut imported = Vec::new();
-            import_batch(&c, &targets, &mut imported, &mut errors);
+            import_batch(&c, &targets, &mut imported, &mut errors, &operation);
+            if operation.is_cancelled() { operation.fail("cancelled"); } else { operation.complete(); }
             for e in &imported {
                 cache_put(state, e);
             }
-            ok(&json!({ "imported": imported, "errors": errors, "dirs": dirs }))
+            ok(&json!({ "imported": imported, "errors": errors, "dirs": dirs, "operation": operation.snapshot() }))
         }
         ("POST", "/folders/rename") => {
             #[derive(Deserialize)]
@@ -698,14 +767,18 @@ fn dispatch(state: &AppState, method: &str, rest: &str, body: Option<&str>) -> F
             }
             let c = ctx(state)?;
             let (files, _) = list_entries(state, &c)?;
+            let targets: Vec<_> = files.iter().filter(|e| under(&e.meta.dir, &from)).collect();
+            let operation = state.secure_file_operations.start(OperationKind::FolderRename, targets.iter().map(|e| e.meta.size).sum(), Some(targets.len() as u64))?;
             let mut updated = 0;
-            for e in files.iter().filter(|e| under(&e.meta.dir, &from)) {
+            for e in targets {
                 let suffix = e.meta.dir[from.len()..].to_string(); // "" or "/sub"
-                let renamed = rewrite(&c, &e.id, |m| m.dir = format!("{to}{suffix}"))?;
+                let renamed = match rewrite(&c, &e.id, &operation, |m| m.dir = format!("{to}{suffix}")) { Ok(entry) => entry, Err(Fail(_, message)) => { operation.fail(&message); return Err(Fail(409, format!("{message}; {updated} files were renamed"))); } };
                 cache_put(state, &renamed);
+                operation.file_completed();
                 updated += 1;
             }
-            ok(&json!({ "updated": updated }))
+            operation.complete();
+            ok(&json!({ "updated": updated, "operation": operation.snapshot() }))
         }
         ("POST", "/folders/delete") => {
             #[derive(Deserialize)]
@@ -748,7 +821,9 @@ fn dispatch(state: &AppState, method: &str, rest: &str, body: Option<&str>) -> F
                         valid_dir(d)?;
                     }
                     let c = ctx(state)?;
-                    let e = rewrite(&c, id, |m| {
+                    let (meta, _) = read_entry_meta(&c, id)?;
+                    let operation = state.secure_file_operations.start(OperationKind::Rename, meta.size, Some(1))?;
+                    let e = rewrite(&c, id, &operation, |m| {
                         if let Some(n) = name {
                             m.name = n;
                         }
@@ -756,6 +831,8 @@ fn dispatch(state: &AppState, method: &str, rest: &str, body: Option<&str>) -> F
                             m.dir = d;
                         }
                     })?;
+                    operation.file_completed();
+                    operation.complete();
                     cache_put(state, &e);
                     ok(&e)
                 }
@@ -780,8 +857,10 @@ fn dispatch(state: &AppState, method: &str, rest: &str, body: Option<&str>) -> F
                     let (mut meta, _) = read_entry_meta(&c, id)?;
                     meta.size = md.len();
                     meta.mtime = mtime_ms(&md);
-                    let _progress = Progress::start(md.len());
-                    let physical = encrypt_object(&c, id, &meta, Meter(fs::File::open(src)?), true)?;
+                    let operation = state.secure_file_operations.start(OperationKind::Replace, md.len(), Some(1))?;
+                    let physical = encrypt_object(&c, id, &meta, Meter(fs::File::open(src)?, &operation), true)?;
+                    operation.file_completed();
+                    operation.complete();
                     let e = Entry { id: id.to_string(), meta, physical };
                     cache_put(state, &e);
                     ok(&e)
@@ -798,12 +877,15 @@ fn dispatch(state: &AppState, method: &str, rest: &str, body: Option<&str>) -> F
                         return Err(bad("cannot export into the encrypted storage folder"));
                     }
                     let (meta, _) = read_entry_meta(&c, id)?;
-                    let _progress = Progress::start(meta.size);
+                    let operation = state.secure_file_operations.start(OperationKind::Export, meta.size, Some(1))?;
                     // A failed export leaves a partial file behind, and it is
                     // plaintext — remove it rather than hand back half a secret.
-                    decrypt_object(&c, id, Meter(fs::File::create(dest)?)).inspect_err(|_| {
+                    decrypt_object(&c, id, Meter(fs::File::create(dest)?, &operation)).inspect_err(|e| {
                         let _ = fs::remove_file(dest);
+                        operation.fail(&e.1);
                     })?;
+                    operation.file_completed();
+                    operation.complete();
                     Ok(ApiResponse::empty(204))
                 }
                 _ => Err(Fail(404, "Not found".into())),
@@ -885,6 +967,10 @@ mod tests {
         body_json(&r)
     }
 
+    fn progress(state: &AppState) -> Value {
+        body_json(&route(state, "GET", "/api/v1/secure-files/progress", None).unwrap())
+    }
+
     /// An object built outside the router, the way the format crate builds it.
     fn sealed(kek: &[u8; 32], p: &KdfParams, meta: &FileMeta, plaintext: &[u8]) -> Vec<u8> {
         let mut out = Vec::new();
@@ -913,6 +999,19 @@ mod tests {
         assert_eq!(r.status, 409);
         let r = route(&state, "PUT", "/api/v1/secure-files/settings", Some(r#"{"dir":"relative"}"#)).unwrap();
         assert_eq!(r.status, 400);
+    }
+
+    #[test]
+    fn progress_reports_an_idle_operation_snapshot() {
+        let state = AppState::in_memory();
+        let progress = body_json(&route(&state, "GET", "/api/v1/secure-files/progress", None).unwrap());
+
+        assert_eq!(progress["id"], Value::Null);
+        assert_eq!(progress["status"], "idle");
+        assert_eq!(progress["done"], 0);
+        assert_eq!(progress["total"], 0);
+        assert_eq!(progress["filesCompleted"], Value::Null);
+        assert_eq!(progress["filesTotal"], Value::Null);
     }
 
     #[test]
@@ -1049,8 +1148,8 @@ mod tests {
         assert_eq!(list(&state)["totals"]["size"], exact.len());
 
         // Nothing in flight once the calls return, so the UI stops polling.
-        // (Cancelling is covered by `cancel_stops_an_import`, which has to run
-        // alone — the counters are process-global.)
+        // (Cancelling is covered by the `cancel_stops_*` tests, which have to
+        // run alone — the counters are process-global.)
         let p = body_json(&route(&state, "GET", "/api/v1/secure-files/progress", None).unwrap());
         assert_eq!(p["total"], 0, "{p}");
     }
@@ -1194,8 +1293,8 @@ mod tests {
     }
 
     /// Cancel mid-import: the object never lands and the temp file goes away.
-    /// The progress counters are process-global, so this one has to run alone:
-    /// `cargo test --lib cancel_stops_an_import -- --ignored --test-threads=1`.
+    /// The progress counters are process-global, so the cancel tests run alone:
+    /// `cargo test --lib cancel_stops_ -- --ignored --test-threads=1`.
     #[test]
     #[ignore]
     fn cancel_stops_an_import() {
@@ -1205,7 +1304,7 @@ mod tests {
 
         let res = std::thread::scope(|s| {
             let importing = s.spawn(|| import(&state, &[tmp.s("slow.bin")], ""));
-            while DONE.load(Relaxed) == 0 {
+            while progress(&state)["done"] == 0 {
                 std::hint::spin_loop();
             }
             route(&state, "POST", "/api/v1/secure-files/progress/cancel", None).unwrap();
@@ -1215,7 +1314,70 @@ mod tests {
         assert_eq!(res["imported"].as_array().unwrap().len(), 0, "{res}");
         assert!(res["errors"][0]["error"].as_str().unwrap().contains("cancelled"), "{res}");
         assert!(store_names(&tmp).is_empty(), "{:?}", store_names(&tmp));
-        assert_eq!(TOTAL.load(Relaxed), 0, "counters left running");
+        assert_eq!(progress(&state)["total"], 0, "counters left running");
+    }
+
+    /// Cancel mid-rename: the error names the cancel, not the broken pipe the
+    /// decrypt side dies of once the encryptor stops reading, and the object
+    /// keeps its old name. Runs alone, like the import one above.
+    #[test]
+    #[ignore]
+    fn cancel_stops_a_rename() {
+        let tmp = Tmp::new("cancel-rename");
+        let state = unlocked(&tmp);
+        fs::File::create(tmp.path("big.bin")).unwrap().set_len(32 * 1024 * 1024).unwrap();
+        let res = import(&state, &[tmp.s("big.bin")], "");
+        let id = res["imported"][0]["id"].as_str().unwrap().to_string();
+
+        let path = format!("/api/v1/secure-files/files/{id}");
+        let r = std::thread::scope(|s| {
+            let renaming = s.spawn(|| route(&state, "PATCH", &path, Some(r#"{"name":"new.bin"}"#)).unwrap());
+            while progress(&state)["done"] == 0 {
+                std::hint::spin_loop();
+            }
+            route(&state, "POST", "/api/v1/secure-files/progress/cancel", None).unwrap();
+            renaming.join().unwrap()
+        });
+
+        assert!(r.body.contains("cancelled"), "{}", r.body);
+        assert_eq!(store_names(&tmp), [format!("{id}.mydt")]);
+        assert_eq!(list(&state)["files"][0]["name"], "big.bin");
+    }
+
+    /// A folder rename keeps the files atomically committed before cancellation
+    /// and leaves the current and remaining entries in their original folder.
+    #[test]
+    #[ignore]
+    fn cancel_stops_a_folder_rename_between_files() {
+        let tmp = Tmp::new("cancel-folder-rename");
+        let state = unlocked(&tmp);
+        let mut paths = Vec::new();
+        for index in 0..3 {
+            let name = format!("large-{index}.bin");
+            fs::File::create(tmp.path(&name)).unwrap().set_len(32 * 1024 * 1024).unwrap();
+            paths.push(tmp.s(&name));
+        }
+        assert_eq!(import(&state, &paths, "src")["imported"].as_array().unwrap().len(), 3);
+
+        let response = std::thread::scope(|scope| {
+            let renaming = scope.spawn(|| route(&state, "POST", "/api/v1/secure-files/folders/rename", Some(r#"{"from":"src","to":"app"}"#)).unwrap());
+            loop {
+                let current = progress(&state);
+                if current["filesCompleted"].as_u64().unwrap_or(0) >= 1 {
+                    route(&state, "POST", "/api/v1/secure-files/progress/cancel", None).unwrap();
+                    break;
+                }
+                std::hint::spin_loop();
+            }
+            renaming.join().unwrap()
+        });
+
+        assert_eq!(response.status, 409, "{}", response.body);
+        assert!(response.body.contains("cancelled"), "{}", response.body);
+        let files = list(&state)["files"].as_array().unwrap().to_vec();
+        assert!(files.iter().any(|file| file["dir"] == "app"), "{files:?}");
+        assert!(files.iter().any(|file| file["dir"] == "src"), "{files:?}");
+        assert!(!store_names(&tmp).iter().any(|name| name.ends_with(TMP_EXT)));
     }
 
     /// Manual scale check: `cargo test --lib scale_smoke_10k -- --ignored --nocapture`.

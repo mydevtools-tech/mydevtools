@@ -16,6 +16,16 @@ export type StorageTotals = { count: number; size: number; physical: number }
 export type ListResult = { totals: StorageTotals; files: SecureFileEntry[]; errors: { id: string; error: string }[] }
 /** `dirs` lists every walked directory (logical path) — including empty ones. */
 export type ImportResult = { imported: SecureFileEntry[]; errors: { path: string; error: string }[]; dirs: string[] }
+export type SecureFilesOperation = {
+  id: string | null
+  kind?: "import" | "export" | "rename" | "replace" | "folder_rename"
+  status: "idle" | "running" | "completed" | "cancelled" | "failed"
+  done: number
+  total: number
+  filesCompleted: number | null
+  filesTotal: number | null
+  error?: string | null
+}
 
 export const getSecureFilesSettings = () => apiRequest<SecureFilesSettings>("GET", `${BASE}/settings`)
 export const setSecureFilesDir = (dir: string) =>
@@ -31,9 +41,10 @@ export const exportSecureFile = (id: string, path: string) =>
   apiRequest<void>("POST", `${BASE}/files/${id}/export`, { path })
 export const deleteSecureFile = (id: string) => apiRequest<void>("DELETE", `${BASE}/files/${id}`)
 /** Plaintext bytes moved by the stream in flight; `total` 0 = nothing running. */
-export const getSecureFilesProgress = () => apiRequest<{ done: number; total: number }>("GET", `${BASE}/progress`)
+export const getSecureFilesProgress = () => apiRequest<SecureFilesOperation>("GET", `${BASE}/progress`)
 /** Asks the stream in flight to stop; it unwinds and leaves the store untouched. */
-export const cancelSecureFilesOp = () => apiRequest<void>("POST", `${BASE}/progress/cancel`)
+export const cancelSecureFilesOp = (operationId?: string | null) =>
+  apiRequest<void>("POST", `${BASE}/progress/cancel`, operationId ? { operationId } : undefined)
 export const renameSecureFolder = (from: string, to: string) =>
   apiRequest<{ updated: number }>("POST", `${BASE}/folders/rename`, { from, to })
 export const deleteSecureFolder = (dir: string) =>

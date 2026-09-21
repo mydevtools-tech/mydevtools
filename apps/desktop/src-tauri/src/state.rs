@@ -1,5 +1,5 @@
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use zeroize::Zeroizing;
 
@@ -20,6 +20,9 @@ pub struct AppState {
     /// (locked or never listed). Plaintext names live here only while the
     /// vault is unlocked.
     pub sf_meta: Mutex<Option<crate::router::secure_files::MetaCache>>,
+    /// One active secure-file mutation, including its progress and cancellation
+    /// token. The router owns its lifecycle; UI polling only observes it.
+    pub secure_file_operations: Arc<crate::router::secure_files::OperationRegistry>,
 }
 
 impl AppState {
@@ -30,6 +33,7 @@ impl AppState {
             data_dir: db_path.parent().map(Path::to_path_buf),
             kek: Mutex::new(None),
             sf_meta: Mutex::new(None),
+            secure_file_operations: Arc::new(crate::router::secure_files::OperationRegistry::default()),
         })
     }
 
@@ -38,6 +42,12 @@ impl AppState {
     pub fn in_memory() -> Self {
         let conn = rusqlite::Connection::open_in_memory().unwrap();
         db::migrations::run(&conn).unwrap();
-        Self { db: Mutex::new(conn), data_dir: None, kek: Mutex::new(None), sf_meta: Mutex::new(None) }
+        Self {
+            db: Mutex::new(conn),
+            data_dir: None,
+            kek: Mutex::new(None),
+            sf_meta: Mutex::new(None),
+            secure_file_operations: Arc::new(crate::router::secure_files::OperationRegistry::default()),
+        }
     }
 }

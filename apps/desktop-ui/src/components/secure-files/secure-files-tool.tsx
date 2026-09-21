@@ -53,7 +53,7 @@ import {
   type FolderNode,
   type SecureFileEntry,
 } from "@/lib/secure-files"
-import type { StorageTotals } from "@/lib/secure-files-api"
+import type { SecureFilesOperation, StorageTotals } from "@/lib/secure-files-api"
 import {
   cancelSecureFilesOp,
   deleteSecureFile,
@@ -143,7 +143,7 @@ export function SecureFilesTool() {
   const [view, setView] = useState<"list" | "grid">(() => (safeGetItem(VIEW_KEY) === "grid" ? "grid" : "list"))
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [progress, setProgress] = useState<SecureFilesOperation | null>(null)
   const cancelled = useRef(false)
   const [preview, setPreview] = useState<PreviewState | null>(null)
   const [pathDialog, setPathDialog] = useState<PathDialogState | null>(null)
@@ -221,7 +221,7 @@ export function SecureFilesTool() {
     const tick = async () => {
       try {
         const p = await getSecureFilesProgress()
-        if (live) setProgress(p.total > 0 ? p : null)
+        if (live) setProgress(p.status === "running" ? p : null)
       } catch {
         // The listing refresh at the end reports anything that actually broke.
       }
@@ -238,7 +238,7 @@ export function SecureFilesTool() {
     cancelled.current = true
     setProgress(null)
     try {
-      await cancelSecureFilesOp()
+      await cancelSecureFilesOp(progress?.id)
     } catch (e) {
       toast.error(errMsg(e))
     }
