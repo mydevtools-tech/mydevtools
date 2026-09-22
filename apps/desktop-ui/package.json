@@ -82,7 +82,7 @@
     "ipaddr.js": "^2.5.0",
     "jmespath": "^0.16.0",
     "js-md5": "^0.9.2",
-    "js-yaml": "^4.3.1",
+    "js-yaml": "^5.4.2",
     "jsonpath-plus": "^10.4.0",
     "jsonrepair": "^3.15.0",
     "jspdf": "^4.2.1",
