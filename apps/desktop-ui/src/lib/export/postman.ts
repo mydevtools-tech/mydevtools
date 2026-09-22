@@ -3,6 +3,7 @@
  * for the same subset of features. Pre-request + test scripts come along
  * as `event[]` entries.
  */
+import { downloadFile } from "@/lib/desktop/save-file"
 
 import type {
     Collection,
@@ -170,12 +171,5 @@ export function downloadCollectionAsPostman(collection: Collection): void {
     if (typeof window === "undefined") return
     const json = exportPostmanCollection(collection)
     const blob = new Blob([json], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${collection.name.replace(/[^a-zA-Z0-9-_]+/g, "_") || "collection"}.postman_collection.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    downloadFile(blob, `${collection.name.replace(/[^a-zA-Z0-9-_]+/g, "_") || "collection"}.postman_collection.json`)
 }

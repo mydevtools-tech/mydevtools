@@ -117,3 +117,18 @@ describe('BACKGROUNDS', () => {
     expect(BACKGROUNDS.filter((b) => b.css === null)).toHaveLength(1);
   });
 });
+
+describe('highlightCode for beautify/minify languages', () => {
+  // The Beautify & Minify tool maps its languages onto these hljs grammars.
+  const cases: [string, string][] = [
+    ['json', '{"a": 1}'],
+    ['css', 'a { color: red; }'],
+    ['xml', '<div class="x">hi</div>'],
+    ['javascript', 'const a = 1;'],
+  ]
+  it.each(cases)('emits hljs tokens for %s', (lang, code) => {
+    const res = highlightCode(code, lang)
+    expect(res.language).toBe(lang)
+    expect(res.html).toContain('<span class="hljs-')
+  })
+})

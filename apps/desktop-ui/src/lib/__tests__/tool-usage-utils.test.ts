@@ -2,6 +2,7 @@ import {
   appendEvent,
   deriveRecents,
   deriveCounts,
+  DEDUPE_WINDOW_MS,
   MAX_EVENTS,
   type ToolUsage,
 } from '@/lib/tool-usage-utils'
@@ -13,11 +14,23 @@ const ev = (toolId: string, timestamp: number, url = `/app/${toolId}`): ToolUsag
 })
 
 describe('appendEvent', () => {
-  it('prepends the new event without deduping', () => {
+  it('keeps repeat opens of the same tool once they are outside the dedupe window', () => {
     const log = [ev('a', 1000)]
     const out = appendEvent(log, ev('a', 2000), 2000)
     expect(out).toHaveLength(2)
     expect(out[0]).toEqual(ev('a', 2000))
+  })
+
+  it('drops a repeat of the newest tool inside the dedupe window', () => {
+    const log = [ev('a', 1000)]
+    const out = appendEvent(log, ev('a', 1000 + DEDUPE_WINDOW_MS - 1), 2000)
+    expect(out).toBe(log)
+  })
+
+  it('still records a different tool inside the dedupe window', () => {
+    const log = [ev('a', 1000)]
+    const out = appendEvent(log, ev('b', 1001), 2000)
+    expect(out.map((e) => e.toolId)).toEqual(['b', 'a'])
   })
 
   it('prunes events older than 90 days', () => {

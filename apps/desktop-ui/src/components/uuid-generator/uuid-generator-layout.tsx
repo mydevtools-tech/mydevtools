@@ -32,6 +32,7 @@ import { ToolShell } from '@/components/tools/tool-shell';
 import { IOPanel } from '@/components/tools/io-panel';
 import { CopyIconButton } from '@/components/tools/copy-icon-button';
 import { ToolErrorBanner } from '@/components/tools/tool-error-banner';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 const KIND_OPTIONS: { value: IdKind; label: string }[] = [
   { value: 'ulid', label: 'ULID' },
@@ -118,12 +119,7 @@ export function UuidGeneratorLayout() {
   const handleDownload = () => {
     if (!output) return;
     const blob = new Blob([output], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = t('download.filename', { kind });
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, t('download.filename', { kind }));
   };
 
   return (

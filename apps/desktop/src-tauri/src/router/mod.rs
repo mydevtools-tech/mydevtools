@@ -1,3 +1,4 @@
+pub mod analytics;
 pub mod api_client;
 pub mod backup;
 pub mod backup_codes;
@@ -102,6 +103,9 @@ pub fn route(state: &AppState, method: &str, full_path: &str, body: Option<&str>
         }
     }
 
+    if let Some(rest) = rel.strip_prefix("/dashboard/analytics") {
+        return analytics::handle(state, method, rest);
+    }
     if let Some(rest) = rel.strip_prefix("/code-snippets") {
         return snippets::handle(state, method, rest, body);
     }
@@ -459,6 +463,49 @@ mod tests {
         // Bad version rejected.
         let r = route(&dst, "POST", "/desktop/backup/import", Some(r#"{"version":99,"entries":[]}"#)).unwrap();
         assert_eq!(r.status, 422);
+    }
+
+    #[test]
+    fn dashboard_analytics_counts_live_rows() {
+        let state = AppState::in_memory();
+        let empty = body_json(&route(&state, "GET", "/api/v1/dashboard/analytics", None).unwrap());
+        assert_eq!(empty["notes"], 0);
+        assert_eq!(empty["tasks"]["total"], 0);
+
+        route(&state, "POST", "/api/v1/notes", Some(r#"{"title":"n1"}"#)).unwrap();
+        route(&state, "POST", "/api/v1/notes", Some(r#"{"title":"n2"}"#)).unwrap();
+        route(&state, "POST", "/api/v1/bookmarks", Some(r#"{"url":"https://a.dev"}"#)).unwrap();
+        route(&state, "POST", "/api/v1/json-formatter/documents", Some(r#"{"title":"d"}"#)).unwrap();
+        let done = body_json(
+            &route(&state, "POST", "/api/v1/tasks", Some(r#"{"title":"t1","status":"completed"}"#))
+                .unwrap(),
+        );
+        route(&state, "POST", "/api/v1/tasks", Some(r#"{"title":"t2","status":"ongoing"}"#)).unwrap();
+
+        let v = body_json(&route(&state, "GET", "/api/v1/dashboard/analytics", None).unwrap());
+        assert_eq!(v["notes"], 2);
+        assert_eq!(v["bookmarks"], 1);
+        assert_eq!(v["jsonFormatterDocuments"], 1);
+        assert_eq!(v["tasks"]["total"], 2);
+        assert_eq!(v["tasks"]["completed"], 1);
+        assert_eq!(v["tasks"]["ongoing"], 1);
+
+        // Deleted rows drop out of the counts.
+        let note = body_json(&route(&state, "GET", "/api/v1/notes", None).unwrap())[0]["id"]
+            .as_str()
+            .unwrap()
+            .to_string();
+        route(&state, "DELETE", &format!("/api/v1/notes/{note}"), None).unwrap();
+        let v = body_json(&route(&state, "GET", "/api/v1/dashboard/analytics", None).unwrap());
+        assert_eq!(v["notes"], 1);
+
+        // Archived tasks leave the active breakdown, matching /tasks/stats.
+        let id = done["id"].as_str().unwrap();
+        route(&state, "PATCH", &format!("/api/v1/tasks/{id}"), Some(r#"{"archived":true}"#)).unwrap();
+        let v = body_json(&route(&state, "GET", "/api/v1/dashboard/analytics", None).unwrap());
+        let stats = body_json(&route(&state, "GET", "/api/v1/tasks/stats", None).unwrap());
+        assert_eq!(v["tasks"], stats);
+        assert_eq!(v["tasks"]["total"], 1);
     }
 
     #[test]

@@ -2,8 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { toBlob, toPng } from 'html-to-image'
-import { saveAs } from 'file-saver'
+import { toBlob } from 'html-to-image'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +22,7 @@ import { IconPhotoCode } from '@tabler/icons-react'
 import { ToolShell } from '@/components/tools/tool-shell'
 import { IOPanel, ToolTextArea } from '@/components/tools/io-panel'
 import { BACKGROUNDS, LANGUAGES, canFormat, formatCode, highlightCode } from '@/lib/code-screenshot'
+import { downloadFile } from '@/lib/desktop/save-file'
 
 /**
  * highlight.js theme scoped under .cshot-code so it can never bleed into the
@@ -124,8 +124,9 @@ export function CodeScreenshotLayout() {
     if (!node) return
     setExporting(true)
     try {
-      const dataUrl = await toPng(node, { pixelRatio: scale, cacheBust: true })
-      saveAs(dataUrl, 'code-screenshot.png')
+      const blob = await toBlob(node, { pixelRatio: scale, cacheBust: true })
+      if (!blob) throw new Error('no blob')
+      downloadFile(blob, 'code-screenshot.png')
     } catch {
       toast.error(t('exportFailed'))
     } finally {

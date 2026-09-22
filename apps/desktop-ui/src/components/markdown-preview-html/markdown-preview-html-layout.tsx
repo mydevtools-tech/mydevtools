@@ -14,6 +14,7 @@ import { Copy, Check, Download, Eye, Code } from 'lucide-react';
 import { IconMarkdown } from '@tabler/icons-react';
 import { ToolShell } from '@/components/tools/tool-shell';
 import { IOPanel, ToolTextArea } from '@/components/tools/io-panel';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 // Configure marked for safe, synchronous rendering
 marked.setOptions({ async: false });
@@ -101,12 +102,7 @@ export function MarkdownPreviewLayout() {
     if (!renderedHtml) return;
     const name = `${safeFileName(fileName)}.html`;
     const blob = new Blob([buildFullHtml(renderedHtml)], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, name);
     toast.success(t('exportSuccess', { name }));
   }, [renderedHtml, fileName, t]);
 

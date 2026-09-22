@@ -83,6 +83,7 @@ import { RenameDialog } from "./rename-dialog"
 import { ShareLinkDialog } from "./share-link-dialog"
 import { UploadProgressPanel, type FileUploadStatus } from "./upload-progress-panel"
 import { MoveToDialog } from "./move-to-dialog"
+import { downloadFile } from "@/lib/desktop/save-file"
 
 type ViewMode = "list" | "grid"
 type SortCol = "name" | "size" | "modified"
@@ -372,11 +373,7 @@ export function FileBrowser({ credentials, connectionName }: Props) {
             // Fetched through the Rust proxy — a cross-origin presigned URL would
             // hit CORS / unsupported downloads in the Tauri webview.
             const blob = await getObjectBlob(credentials, key)
-            const a = document.createElement("a")
-            a.href = URL.createObjectURL(blob)
-            a.download = key.split("/").pop() ?? key
-            a.click()
-            setTimeout(() => URL.revokeObjectURL(a.href), 30_000)
+            downloadFile(blob, key.split("/").pop() ?? key)
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Failed to download file")
         }
@@ -496,10 +493,7 @@ export function FileBrowser({ credentials, connectionName }: Props) {
         const fileKeys = Array.from(selectedKeys).filter((k) => !k.endsWith("/"))
         if (!fileKeys.length) { toast.error("No files selected (folders are skipped)"); return }
         setZipProgress({ done: 0, total: fileKeys.length })
-        const [{ default: JSZip }, { saveAs }] = await Promise.all([
-            import("jszip"),
-            import("file-saver"),
-        ])
+        const { default: JSZip } = await import("jszip")
         const zip = new JSZip()
         let ok = 0
         const ZIP_CONCURRENCY = 6
@@ -520,7 +514,7 @@ export function FileBrowser({ credentials, connectionName }: Props) {
         }
         if (ok > 0) {
             const blob = await zip.generateAsync({ type: "blob" })
-            saveAs(blob, `download-${Date.now()}.zip`)
+            downloadFile(blob, `download-${Date.now()}.zip`)
         }
         setZipProgress(null)
     }

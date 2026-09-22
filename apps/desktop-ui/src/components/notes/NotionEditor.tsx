@@ -40,6 +40,7 @@ import {
     readingTimeMinutes,
 } from "@/app/app/notes/utils/noteContentUtils";
 import type { Note } from "@/app/app/notes/types/Note";
+import { downloadFile } from "@/lib/desktop/save-file";
 import {
     mergePendingUpdate,
     requeuePendingUpdates,
@@ -230,12 +231,7 @@ export default function NotionEditor() {
         const src = latestMarkdownRef.current ?? activeContent;
         const md = contentToMarkdown(title || "Untitled", src);
         const blob = new Blob([md], { type: "text/markdown" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${(title || "note").replace(/\s+/g, "-")}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadFile(blob, `${(title || "note").replace(/\s+/g, "-")}.md`);
     }, [activeContent, title]);
 
     const handleExportHtml = useCallback(() => {
@@ -244,12 +240,7 @@ export default function NotionEditor() {
         const bodyHtml = marked.parse(body, { async: false }) as string;
         const html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8" />\n<title>${title || "Note"}</title>\n</head>\n<body>\n<h1 style="font-size:2rem;font-weight:bold;margin-bottom:1rem">${title || "Untitled"}</h1>\n${bodyHtml}</body>\n</html>`;
         const blob = new Blob([html], { type: "text/html" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${(title || "note").replace(/\s+/g, "-")}.html`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadFile(blob, `${(title || "note").replace(/\s+/g, "-")}.html`);
     }, [activeContent, title]);
 
     const handleApplyTemplate = useCallback((tpl: NoteTemplate) => {

@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import type { editor } from "monaco-editor"
 import { truncateBody } from "./truncate-body"
 import { ResponsePanelSkeleton } from "./skeletons"
+import { downloadFile } from "@/lib/desktop/save-file"
 
 const MAX_INLINE_BYTES = 2 * 1024 * 1024 // 2MB
 
@@ -203,14 +204,7 @@ function ResponsePanelImpl({ response, isLoading, scriptResults, onSaveExample }
                 type: contentType || (isHtmlResponse ? "text/html" : "text/plain"),
             })
         }
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = `response-${Date.now()}.${getLanguage()}`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        downloadFile(blob, `response-${Date.now()}.${getLanguage()}`)
     }
 
     const renderPreview = () => {

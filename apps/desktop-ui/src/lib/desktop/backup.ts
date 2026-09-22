@@ -12,6 +12,7 @@
  * reuse it) and is NOT recoverable — losing it means losing the backup.
  */
 import { localApi } from "./bridge";
+import { downloadFile } from "./save-file";
 
 const MAGIC = "MDTBACKUP";
 const FORMAT_VERSION = 1;
@@ -91,14 +92,7 @@ export async function exportBackup(passphrase: string): Promise<Blob> {
 /** Export and hand the encrypted backup to the browser as a file download. */
 export async function downloadBackup(passphrase: string): Promise<void> {
   const blob = await exportBackup(passphrase);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `mydevtools-backup-${new Date().toISOString().split("T")[0]}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadFile(blob, `mydevtools-backup-${new Date().toISOString().split("T")[0]}.json`);
 }
 
 /** True if the local vault already has a configured master password. */

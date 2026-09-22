@@ -9,6 +9,7 @@ import { IconRefresh, IconShieldCheck, IconChevronRight, IconDownload } from "@t
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { generateSchemaExport, SchemaExportFormat } from "@/lib/nosql-schema-export";
+import { downloadFile } from "@/lib/desktop/save-file";
 
 export type SampleMode = "random" | "first" | "last" | "all";
 export interface SchemaLoadOptions { sampleMode: SampleMode; sampleSize: number }
@@ -88,12 +89,7 @@ export function SchemaView({
 
     const exportSchema = (format: SchemaExportFormat) => {
         const { content, ext, mime } = generateSchemaExport(format, data!.fields, collectionName);
-        const url = URL.createObjectURL(new Blob([content], { type: mime }));
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${collectionName}.${ext}`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadFile(new Blob([content], { type: mime }), `${collectionName}.${ext}`);
     };
 
     const validator = data.validator && typeof data.validator === "object" ? data.validator : null;

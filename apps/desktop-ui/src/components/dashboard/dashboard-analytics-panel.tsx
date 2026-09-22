@@ -10,11 +10,14 @@ import {
   Boxes,
   Braces,
   Briefcase,
+  Clock,
   Code2,
   Database,
   Eye,
   EyeOff,
+  FolderLock,
   FolderOpen,
+  HardDrive,
   History,
   KeyRound,
   ListTodo,
@@ -29,7 +32,9 @@ import {
   type DashboardAnalyticsSummary,
 } from '@/lib/dashboard-analytics-api'
 import { cn } from '@/lib/utils'
+import { formatBytes } from '@/lib/format-bytes'
 import { useToolUsage } from '@/hooks/use-tool-usage'
+import { type ToolUsage } from '@/lib/tool-usage-utils'
 import { DonutChart } from './charts/donut-chart'
 import { ActivityBarChart } from './charts/activity-bar-chart'
 import { TopToolsBars, type TopTool } from './charts/top-tools-bars'
@@ -41,42 +46,69 @@ import { TaskCard } from './task-card'
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
+/** Background refresh cadence while the window is on screen. */
+const REFRESH_INTERVAL_MS = 30_000
+
+type UsageSnapshot = {
+  events: ToolUsage[]
+  counts: ReturnType<ReturnType<typeof useToolUsage>['getToolUsageCounts']>
+}
+
+const EMPTY_USAGE: UsageSnapshot = { events: [], counts: {} }
+
 export function DashboardAnalyticsPanel() {
   const t = useTranslations('Dashboard.analytics')
   const [data, setData] = useState<DashboardAnalyticsSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
-  const [tick, setTick] = useState(0)
   const [showEmpty, setShowEmpty] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const { getUsageEvents, getToolUsageCounts } = useToolUsage()
+  const [usage, setUsage] = useState<UsageSnapshot>(EMPTY_USAGE)
+
+  /**
+   * `silent` keeps the skeleton off for background refreshes — swapping the
+   * whole panel for a skeleton every 30s reads as a broken page.
+   */
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
     setError(null)
     try {
       const summary = await fetchDashboardAnalyticsSummary()
       setData(summary)
+      // Usage history lives in localStorage; re-read it on the same tick so the
+      // launch counts and activity chart never lag the stored counts.
+      setUsage({ events: getUsageEvents(), counts: getToolUsageCounts() })
       setRefreshedAt(new Date())
     } catch (e) {
       setError(e instanceof Error ? e.message : t('loadError'))
-      setData(null)
+      if (!silent) setData(null)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
-  }, [t])
+  }, [t, getUsageEvents, getToolUsageCounts])
 
   useEffect(() => { void load() }, [load])
 
-  // Re-render "X ago" every 30s
+  // Keep the panel live: poll while the window is on screen, and refresh the
+  // moment it comes back — data changes in the tools, not in here, so mount-time
+  // numbers go stale as soon as the user does anything.
   useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 30_000)
-    return () => clearInterval(id)
-  }, [])
-  void tick
+    const isVisible = () => typeof document === 'undefined' || document.visibilityState === 'visible'
+    const refresh = () => { if (isVisible()) void load(true) }
 
-  const { getUsageEvents, getToolUsageCounts } = useToolUsage()
-  const usageEvents = useMemo(() => getUsageEvents(), [getUsageEvents])
-  const toolUsageCounts = useMemo(() => getToolUsageCounts(), [getToolUsageCounts])
+    const id = setInterval(refresh, REFRESH_INTERVAL_MS)
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      clearInterval(id)
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [load])
+
+  const { events: usageEvents, counts: toolUsageCounts } = usage
 
   const topUsedTools = useMemo<TopTool[]>(() => {
     return Object.entries(toolUsageCounts)
@@ -160,6 +192,28 @@ export function DashboardAnalyticsPanel() {
     { label: t('apiClientEnvironments'),   value: data.apiClientEnvironments,   icon: Server,   accent: 'from-fuchsia-500 to-pink-500',                                      href: '/app/api-client' },
     { label: t('apiClientHistory'),        value: data.apiClientHistoryEntries, icon: History,  accent: 'from-orange-500 to-red-500',                                        href: '/app/api-client' },
     { label: t('jsonFormatterDocuments'),  value: data.jsonFormatterDocuments,  icon: Braces,   accent: 'from-cyan-500 to-blue-600',                                         href: '/app/json-formatter' },
+  ]
+
+  const { files } = data
+  const filesActiveCount = files.count > 0 ? 1 : 0
+  const fileChips = [
+    { label: t('filesCount'), value: files.count, icon: FolderLock, accent: 'from-indigo-500 to-violet-600', href: '/app/secure-files' },
+    {
+      label: t('filesOnDisk'),
+      value: files.physicalBytes,
+      display: formatBytes(files.physicalBytes),
+      icon: HardDrive,
+      accent: 'from-teal-500 to-emerald-600',
+      href: '/app/secure-files',
+    },
+    {
+      label: t('filesLastChange'),
+      value: files.lastModifiedAt,
+      display: files.lastModifiedAt > 0 ? timeAgo(new Date(files.lastModifiedAt)) : '—',
+      icon: Clock,
+      accent: 'from-amber-500 to-orange-600',
+      href: '/app/secure-files',
+    },
   ]
 
   const visibleVault     = showEmpty ? vaultChips     : vaultChips.filter((c) => c.value > 0)
@@ -345,6 +399,26 @@ export function DashboardAnalyticsPanel() {
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {(showEmpty ? toolkitChips : visibleToolkit).map((c) => (
+              <MetricChip key={c.label} {...c} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Group 4: Files ───────────────────────────────────────────────────
+          Measured from the .mydt objects on disk, so the count and size stay
+          truthful while the vault is locked. */}
+      <div className="flex flex-col gap-2">
+        <SectionHeader label={t('groupFiles')} activeCount={filesActiveCount} color="default" />
+        {files.count === 0 && !showEmpty ? (
+          <EmptyGroupHint
+            message={files.configured ? t('filesEmpty') : t('filesNoFolder')}
+            href="/app/secure-files"
+            cta={t('filesCta')}
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {fileChips.map((c) => (
               <MetricChip key={c.label} {...c} />
             ))}
           </div>

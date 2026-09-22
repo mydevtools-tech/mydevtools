@@ -14,6 +14,7 @@ import { ToolShell } from '@/components/tools/tool-shell'
 import { ToolPanels, IOPanel, ToolTextArea } from '@/components/tools/io-panel'
 import { utf8ByteLength } from '@/lib/svg-optimize'
 import { useSvgOptimizeWorker } from '@/hooks/use-svg-optimize-worker'
+import { downloadFile } from '@/lib/desktop/save-file'
 
 const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
   <!-- demo: metadata + whitespace -->
@@ -74,12 +75,7 @@ export function SvgOptimizerLayout() {
   const handleDownload = () => {
     if (!output.trim()) return
     const blob = new Blob([output], { type: 'image/svg+xml;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'optimized.svg'
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadFile(blob, 'optimized.svg')
   }
 
   return (

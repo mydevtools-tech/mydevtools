@@ -40,6 +40,7 @@ import {
 import { exportBookmarksToHTML, exportBookmarksToJSON } from "@/lib/bookmark-parser"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { downloadFile } from "@/lib/desktop/save-file"
 
 /** Lives inside ToolSidebarLayout so it can dismiss the mobile sheet on pick. */
 function FolderPanel({ onSelectFolder }: { onSelectFolder: (id: string | null) => void }) {
@@ -85,23 +86,13 @@ export default function BookmarksManager() {
     const handleExportHTML = useCallback(() => {
         const html = exportBookmarksToHTML(bookmarks, folders)
         const blob = new Blob([html], { type: 'text/html' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'bookmarks.html'
-        a.click()
-        URL.revokeObjectURL(url)
+        downloadFile(blob, 'bookmarks.html')
     }, [bookmarks, folders])
 
     const handleExportJSON = useCallback(() => {
         const json = exportBookmarksToJSON(bookmarks, folders)
         const blob = new Blob([json], { type: 'application/json' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'bookmarks.json'
-        a.click()
-        URL.revokeObjectURL(url)
+        downloadFile(blob, 'bookmarks.json')
     }, [bookmarks, folders])
 
     const handleEditBookmark = useCallback((id: string) => {

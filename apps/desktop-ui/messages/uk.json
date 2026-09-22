@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "Налаштування інтерфейсу",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "Завантаження редактора…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "Зображення в Base64",
@@ -4890,7 +4896,9 @@
     "copy": "Копіювати",
     "headSnippet": "Фрагмент для head HTML",
     "downloadIco": "Завантажити favicon.ico",
-    "downloadZip": "Завантажити все (.zip)"
+    "downloadZip": "Завантажити все (.zip)",
+    "loadError": "Не вдалося завантажити зображення",
+    "saveError": "Не вдалося зберегти файл"
   },
   "JsonDiff": {
     "title": "Порівняння JSON",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(Пробіл)",
-      "keyLabel": "event.key",
+      "keyLabel": "Клавіша",
       "repeat": "повтор"
     },
     "copyJson": "Копіювати JSON",
     "copiedJson": "JSON події скопійовано до буфера обміну",
     "deprecated": "застаріле",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "Код",
+      "keyCode": "Код клавіші",
+      "which": "Which",
+      "location": "Розташування"
     },
     "location": {
       "standard": "Стандартне",

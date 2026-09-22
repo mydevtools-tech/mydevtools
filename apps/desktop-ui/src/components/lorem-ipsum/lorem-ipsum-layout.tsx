@@ -24,6 +24,7 @@ import {
   type LoremUnit,
 } from '@/lib/lorem-ipsum';
 import { useTranslations } from 'next-intl';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 const UNIT_VALUES: LoremUnit[] = ['paragraphs', 'sentences', 'words', 'list'];
 
@@ -65,12 +66,7 @@ export function LoremIpsumLayout() {
   const handleDownload = () => {
     if (!output) return;
     const blob = new Blob([output], { type: asHtml ? 'text/html' : 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = asHtml ? 'lorem-ipsum.html' : 'lorem-ipsum.txt';
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, asHtml ? 'lorem-ipsum.html' : 'lorem-ipsum.txt');
   };
 
   return (

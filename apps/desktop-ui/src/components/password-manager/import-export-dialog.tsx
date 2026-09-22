@@ -23,6 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useTranslations } from "next-intl"
+import { downloadFile } from "@/lib/desktop/save-file"
 
 interface ImportExportDialogProps {
     children?: React.ReactNode
@@ -67,14 +68,7 @@ export function ImportExportDialog({ children }: ImportExportDialogProps) {
 
     const download = (contents: string, suffix: string) => {
         const blob = new Blob([contents], { type: "application/json" })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = `password-vault-export-${new Date().toISOString().split("T")[0]}${suffix}.json`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        downloadFile(blob, `password-vault-export-${new Date().toISOString().split("T")[0]}${suffix}.json`)
     }
 
     /**

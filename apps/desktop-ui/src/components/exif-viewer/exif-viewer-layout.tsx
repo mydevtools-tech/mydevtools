@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import exifr from 'exifr'
-import { saveAs } from 'file-saver'
 import { toast } from 'sonner'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { Badge } from '@/components/ui/badge'
@@ -34,6 +33,7 @@ import {
 import { IconPhotoSearch } from '@tabler/icons-react'
 import { ToolShell } from '@/components/tools/tool-shell'
 import { IOPanel } from '@/components/tools/io-panel'
+import { downloadFile } from '@/lib/desktop/save-file'
 import {
   decimalToDms,
   formatBytes,
@@ -482,7 +482,7 @@ export function ExifViewerLayout() {
                   <span className="text-muted-foreground">{t('remove.after')}:</span>{' '}
                   <span className="font-mono text-xs">{formatBytes(cleaned.blob.size)}</span>
                 </div>
-                <Button size="sm" variant="secondary" onClick={() => saveAs(cleaned.blob, cleaned.name)}>
+                <Button size="sm" variant="secondary" onClick={() => downloadFile(cleaned.blob, cleaned.name)}>
                   <Download className="mr-1.5 h-4 w-4" />
                   {t('remove.download')}
                 </Button>

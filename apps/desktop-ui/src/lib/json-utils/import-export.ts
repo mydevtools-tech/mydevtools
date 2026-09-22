@@ -1,6 +1,7 @@
 /**
  * Import/Export utilities for JSON Editor
  */
+import { downloadFile } from "@/lib/desktop/save-file"
 
 /**
  * Load JSON from a file
@@ -38,13 +39,7 @@ export async function importJSONFromFile(): Promise<string> {
  * Export JSON to a file
  */
 export function exportJSONToFile(content: string, filename = 'data.json') {
-    const blob = new Blob([content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(content, filename, 'application/json');
 }
 
 /**
@@ -85,13 +80,7 @@ export function exportJSONAsCSV(content: string, filename = 'data.csv'): { succe
             ),
         ].join('\n');
 
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadFile(csv, filename, 'text/csv');
 
         return { success: true };
     } catch (err) {

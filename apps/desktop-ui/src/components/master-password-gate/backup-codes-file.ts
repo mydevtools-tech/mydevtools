@@ -1,3 +1,5 @@
+import { downloadFile } from "@/lib/desktop/save-file"
+
 export function downloadBackupCodesFile(codes: string[], userEmail?: string | null) {
     const date = new Date().toLocaleDateString("en-US", {
         year: "numeric",
@@ -32,10 +34,5 @@ export function downloadBackupCodesFile(codes: string[], userEmail?: string | nu
         "========================================",
     ]
     const blob = new Blob([lines.join("\n")], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "mydevtools-backup-codes.txt"
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadFile(blob, "mydevtools-backup-codes.txt")
 }

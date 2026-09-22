@@ -11,6 +11,8 @@ import { isDesktop } from '@/lib/desktop/is-desktop';
 import { MobileDesktopHint } from '@/components/mobile-desktop-hint';
 import { useWorkspaceStore } from '@/store/workspace-store';
 import { initWorkspaceScopeReset } from '@/lib/workspace-scope-reset';
+import { useToolUsage } from '@/hooks/use-tool-usage';
+import { findItemByUrl } from '@/components/dashboard/types';
 
 // Reset workspace-scoped stores whenever the active workspace changes
 // (module-level, mirrors workspace-store's own subscribeOnce pattern).
@@ -56,6 +58,23 @@ function TabSyncer() {
   return null;
 }
 
+// Records a "tool opened" event whenever the URL lands on a real tool route.
+// This is the single choke point for usage history: the sidebar, ⌘K, dashboard
+// cards and tab chips all navigate with router.push, so every open passes here.
+// Events are keyed by route path, the only tool identity that survives a
+// reordering of sidebar-data.
+function ToolUsageTracker() {
+  const pathname = usePathname();
+  const { trackToolUsage } = useToolUsage();
+
+  useEffect(() => {
+    if (!pathname || !findItemByUrl(pathname)) return;
+    trackToolUsage(pathname, pathname);
+  }, [pathname, trackToolUsage]);
+
+  return null;
+}
+
 function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { tabs } = useTabStore();
@@ -69,6 +88,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen w-full flex-col relative overflow-hidden">
       <TabSyncer />
+      <ToolUsageTracker />
       <TopBar />
       <div className="flex min-h-0 w-full flex-1">
         <main className="flex-1 font-mono flex flex-col pb-16 md:pb-0 min-w-0 overflow-hidden">

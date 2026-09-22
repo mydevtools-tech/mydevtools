@@ -84,6 +84,26 @@ export const findItemById = (id: string | undefined | null): ToolItem | undefine
   }
 }
 
+/**
+ * Resolve a route path (`/app/json-formatter`) to the sidebar ToolItem it opens.
+ *
+ * Route paths are the stable identity for a tool: unlike the position-based IDs
+ * above they survive any reordering of `sidebar-data`, so they are what usage
+ * history is keyed by.
+ */
+export const findItemByUrl = (url: string | undefined | null): ToolItem | undefined => {
+  if (!url || typeof url !== 'string') return undefined
+
+  for (const group of sidebarData.navGroups) {
+    for (const item of group.items) {
+      if (item.url?.toString() === url) return item
+      const sub = item.items?.find((s) => s.url?.toString() === url)
+      if (sub) return { ...sub, icon: sub.icon ?? item.icon }
+    }
+  }
+  return undefined
+}
+
 /** Human-readable relative time from a unix-ms timestamp. */
 export function formatRelativeTime(ts: number): string {
   const diff = Date.now() - ts

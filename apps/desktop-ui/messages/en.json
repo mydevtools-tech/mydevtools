@@ -393,6 +393,13 @@
       "apiClientHistory": "API history entries",
       "jsonFormatterDocuments": "JSON formatter documents",
       "codeSnippets": "Code snippets",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files",
       "activityTitle": "Activity",
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
@@ -3158,8 +3165,7 @@
       "dart": "Dart",
       "swift": "Swift (Codable)"
     },
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "SecureFiles": {
     "title": "Files",
@@ -4977,7 +4983,9 @@
     "copy": "Copy",
     "headSnippet": "HTML head snippet",
     "downloadIco": "Download favicon.ico",
-    "downloadZip": "Download all (.zip)"
+    "downloadZip": "Download all (.zip)",
+    "loadError": "Failed to load image",
+    "saveError": "Could not save the file"
   },
   "JsonDiff": {
     "title": "JSON Diff",
@@ -5063,17 +5071,17 @@
     },
     "hero": {
       "spaceKey": "(Space)",
-      "keyLabel": "event.key",
+      "keyLabel": "Key",
       "repeat": "repeat"
     },
     "copyJson": "Copy JSON",
     "copiedJson": "Event JSON copied to clipboard",
     "deprecated": "deprecated",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "Code",
+      "keyCode": "Key code",
+      "which": "Which",
+      "location": "Location"
     },
     "location": {
       "standard": "Standard",

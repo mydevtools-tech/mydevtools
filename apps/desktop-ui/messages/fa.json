@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "ترجیحات رابط",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "در حال بارگذاری ویرایشگر…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "تصویر به Base64",
@@ -4890,7 +4896,9 @@
     "copy": "کپی",
     "headSnippet": "قطعه‌کد HTML head",
     "downloadIco": "دانلود favicon.ico",
-    "downloadZip": "دانلود همه (.zip)"
+    "downloadZip": "دانلود همه (.zip)",
+    "loadError": "بارگذاری تصویر ناموفق بود",
+    "saveError": "ذخیره فایل ممکن نشد"
   },
   "JsonDiff": {
     "title": "تفاوت JSON",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(فاصله)",
-      "keyLabel": "event.key",
+      "keyLabel": "کلید",
       "repeat": "تکرار"
     },
     "copyJson": "کپی JSON",
     "copiedJson": "JSON رویداد در کلیپ‌بورد کپی شد",
     "deprecated": "منسوخ",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "کد",
+      "keyCode": "کد کلید",
+      "which": "Which",
+      "location": "موقعیت"
     },
     "location": {
       "standard": "استاندارد",

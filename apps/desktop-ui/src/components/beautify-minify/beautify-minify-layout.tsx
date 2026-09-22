@@ -18,8 +18,19 @@ import { IconWand } from '@tabler/icons-react'
 import { ToolShell } from '@/components/tools/tool-shell'
 import { ToolPanels, IOPanel, ToolTextArea } from '@/components/tools/io-panel'
 import { BEAUTIFY_LANGS, beautify, minify, type BeautifyLang } from '@/lib/beautify-minify'
+import { highlightCode } from '@/lib/code-screenshot'
+import '@/components/tools/hljs-theme.css'
 
 type Action = 'beautify' | 'minify'
+
+/** Map a beautifier language onto the highlight.js grammar that renders it. */
+const HLJS_LANG: Record<BeautifyLang, string> = {
+  html: 'xml',
+  xml: 'xml',
+  css: 'css',
+  js: 'javascript',
+  json: 'json',
+}
 
 export function BeautifyMinifyLayout() {
   const t = useTranslations('BeautifyMinify')
@@ -38,6 +49,11 @@ export function BeautifyMinifyLayout() {
     [result.output],
   )
   const inBytes = useMemo(() => (input ? new TextEncoder().encode(input).length : 0), [input])
+
+  const highlighted = useMemo(
+    () => (result.error || !result.output ? '' : highlightCode(result.output, HLJS_LANG[lang]).html),
+    [result.error, result.output, lang],
+  )
 
   const toolbar = (
     <div className="flex flex-wrap items-end gap-4 rounded-lg border border-border bg-card px-4 py-3">
@@ -143,9 +159,16 @@ export function BeautifyMinifyLayout() {
           {result.error ? (
             <div className="p-3 text-sm text-destructive">{result.error}</div>
           ) : result.output ? (
-            <pre className="whitespace-pre-wrap break-words p-3 font-mono text-sm leading-relaxed">
-              {result.output}
-            </pre>
+            <div className="hljs-theme">
+              <pre className="m-0 font-mono">
+                <code
+                  className="hljs whitespace-pre-wrap break-words !p-3"
+                  // highlight.js escapes the code it is handed.
+                  // threatcrush-disable-next-line js-unescaped-html-sink
+                  dangerouslySetInnerHTML={{ __html: highlighted }}
+                />
+              </pre>
+            </div>
           ) : (
             <div className="p-3 text-sm text-muted-foreground">{t('outputPlaceholder')}</div>
           )}

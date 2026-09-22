@@ -355,6 +355,48 @@ fn encrypt_and_store(c: &Ctx, meta: &FileMeta, plaintext: &[u8], durable: bool) 
     Ok(Entry { id, meta: meta.clone(), physical: bytes.len() as u64 })
 }
 
+/// Storage figures for the dashboard, derived from the folder listing alone.
+///
+/// Nothing is decrypted, so these are available with the vault locked — the
+/// object count and the bytes the folder occupies are properties of the
+/// container files, not of their contents. Plaintext sizes and names stay
+/// behind the KEK; `unlocked` tells the dashboard which of the two it is
+/// showing.
+pub fn storage_stats(state: &AppState) -> Value {
+    let unlocked = state.kek.lock().unwrap().is_some();
+    let dir = load_cfg(&state.db.lock().unwrap())
+        .ok()
+        .flatten()
+        .and_then(|c| c.dir);
+
+    let (mut count, mut physical, mut last_modified) = (0u64, 0u64, 0i64);
+    if let Some(entries) = dir.as_deref().map(Path::new).and_then(|d| fs::read_dir(d).ok()) {
+        for ent in entries.flatten() {
+            let path = ent.path();
+            let is_object = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .and_then(|n| n.strip_suffix(&format!(".{EXT}")))
+                .is_some_and(|id| valid_id(id).is_ok());
+            if !is_object {
+                continue; // stray file, or a `.mydt.tmp` left by an interrupted write
+            }
+            let Ok(md) = ent.metadata() else { continue };
+            count += 1;
+            physical += md.len();
+            last_modified = last_modified.max(mtime_ms(&md));
+        }
+    }
+
+    json!({
+        "count": count,
+        "physicalBytes": physical,
+        "lastModifiedAt": last_modified,
+        "configured": dir.is_some(),
+        "unlocked": unlocked,
+    })
+}
+
 fn mtime_ms(md: &fs::Metadata) -> i64 {
     md.modified()
         .ok()
@@ -765,6 +807,40 @@ mod tests {
             .collect();
         v.sort();
         v
+    }
+
+    #[test]
+    fn storage_stats_reads_the_folder_without_the_kek() {
+        let unset = storage_stats(&AppState::in_memory());
+        assert_eq!(unset["count"], 0);
+        assert_eq!(unset["configured"], false);
+        assert_eq!(unset["unlocked"], false);
+
+        let tmp = Tmp::new("stats");
+        let state = unlocked(&tmp);
+        fs::write(tmp.path("a.txt"), b"hello").unwrap();
+        fs::write(tmp.path("b.txt"), vec![0u8; 4096]).unwrap();
+        import(&state, &[tmp.s("a.txt"), tmp.s("b.txt")], "");
+        // Junk in the storage folder must not be counted as an object.
+        fs::write(tmp.path("store/notes.txt"), b"stray").unwrap();
+        fs::write(tmp.path("store/deadbeef.mydt.tmp"), b"interrupted write").unwrap();
+
+        let s = storage_stats(&state);
+        assert_eq!(s["count"], 2);
+        assert_eq!(s["configured"], true);
+        assert_eq!(s["unlocked"], true);
+        assert!(s["lastModifiedAt"].as_i64().unwrap() > 0);
+        // Containers hold the plaintext plus per-object overhead.
+        let physical = s["physicalBytes"].as_u64().unwrap();
+        assert!(physical > 5 + 4096, "physical {physical} should exceed the plaintext bytes");
+        assert_eq!(physical, list(&state)["totals"]["physical"].as_u64().unwrap());
+
+        // Same numbers with the vault locked — nothing here is decrypted.
+        *state.kek.lock().unwrap() = None;
+        let locked = storage_stats(&state);
+        assert_eq!(locked["count"], 2);
+        assert_eq!(locked["physicalBytes"], physical);
+        assert_eq!(locked["unlocked"], false);
     }
 
     #[test]

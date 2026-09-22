@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { downloadFile } from '@/lib/desktop/save-file'
 import {
   ALL_FIELD_TYPES,
   FIELD_TYPE_GROUP_STRUCTURE,
@@ -154,12 +155,7 @@ export function MockDataGeneratorLayout() {
   const handleDownload = () => {
     if (!output) return
     const blob = new Blob([output], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `mock-data.${extensionForFormat(format)}`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadFile(blob, `mock-data.${extensionForFormat(format)}`)
   }
 
   const loadPreset = (key: string) => {
@@ -208,12 +204,7 @@ export function MockDataGeneratorLayout() {
     const blob = new Blob([JSON.stringify(toFieldSchema(schemaRows), null, 2)], {
       type: 'application/json;charset=utf-8',
     })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'mock-data-schema.json'
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadFile(blob, 'mock-data-schema.json')
   }
 
   const handleImportSchema = async (file: File) => {

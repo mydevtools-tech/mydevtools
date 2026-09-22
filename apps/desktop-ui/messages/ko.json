@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "인터페이스 설정",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "편집기 로드 중…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "이미지 → Base64",
@@ -4890,7 +4896,9 @@
     "copy": "복사",
     "headSnippet": "HTML head 스니펫",
     "downloadIco": "favicon.ico 다운로드",
-    "downloadZip": "모두 다운로드 (.zip)"
+    "downloadZip": "모두 다운로드 (.zip)",
+    "loadError": "이미지를 불러오지 못했습니다",
+    "saveError": "파일을 저장하지 못했습니다"
   },
   "JsonDiff": {
     "title": "JSON 비교",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(스페이스)",
-      "keyLabel": "event.key",
+      "keyLabel": "키",
       "repeat": "반복"
     },
     "copyJson": "JSON 복사",
     "copiedJson": "이벤트 JSON을 클립보드에 복사했습니다",
     "deprecated": "더 이상 사용되지 않음",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "코드",
+      "keyCode": "키 코드",
+      "which": "Which",
+      "location": "위치"
     },
     "location": {
       "standard": "표준",

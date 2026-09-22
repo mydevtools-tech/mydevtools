@@ -17,6 +17,7 @@ import { CopyTextButton } from '@/components/tools/copy-text-button';
 import { ToolErrorBanner } from '@/components/tools/tool-error-banner';
 import { ToolShell } from '@/components/tools/tool-shell';
 import { ToolPanels, IOPanel, ToolTextArea } from '@/components/tools/io-panel';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 export function GitignoreLayout() {
   const t = useTranslations('GitignoreGenerator');
@@ -90,15 +91,10 @@ export function GitignoreLayout() {
     void copyToClipboard(output, { silent: true });
   };
 
-  const downloadFile = () => {
+  const handleDownload = () => {
     if (!output) return;
     const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '.gitignore';
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, '.gitignore');
   };
 
   const toggleStack = (tag: string) => {
@@ -231,7 +227,7 @@ export function GitignoreLayout() {
           }
           actions={
             <>
-              <Button type="button" variant="ghost" size="sm" onClick={downloadFile} disabled={!output || loadingOutput} className="h-7 text-xs gap-1.5 px-2">
+              <Button type="button" variant="ghost" size="sm" onClick={handleDownload} disabled={!output || loadingOutput} className="h-7 text-xs gap-1.5 px-2">
                 <Download className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t('download')}</span>
               </Button>

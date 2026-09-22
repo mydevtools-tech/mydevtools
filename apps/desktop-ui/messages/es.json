@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "Preferencias de interfaz",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "Cargando el editor…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "Imagen a Base64",
@@ -4890,7 +4896,9 @@
     "copy": "Copiar",
     "headSnippet": "Fragmento para el head HTML",
     "downloadIco": "Descargar favicon.ico",
-    "downloadZip": "Descargar todo (.zip)"
+    "downloadZip": "Descargar todo (.zip)",
+    "loadError": "No se pudo cargar la imagen",
+    "saveError": "No se pudo guardar el archivo"
   },
   "JsonDiff": {
     "title": "Diff de JSON",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(Espacio)",
-      "keyLabel": "event.key",
+      "keyLabel": "Tecla",
       "repeat": "repetición"
     },
     "copyJson": "Copiar JSON",
     "copiedJson": "JSON del evento copiado al portapapeles",
     "deprecated": "obsoleto",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "Código",
+      "keyCode": "Código de tecla",
+      "which": "Which",
+      "location": "Ubicación"
     },
     "location": {
       "standard": "Estándar",

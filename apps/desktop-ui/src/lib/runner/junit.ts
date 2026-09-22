@@ -5,6 +5,7 @@
  */
 
 import type { RequestRunResult } from "./types"
+import { downloadFile } from "@/lib/desktop/save-file"
 
 function escapeXml(s: string): string {
     return String(s)
@@ -63,12 +64,5 @@ export function downloadJUnitXml(results: RequestRunResult[], suiteName: string)
     if (typeof window === "undefined") return
     const xml = buildJUnitXml(results, suiteName)
     const blob = new Blob([xml], { type: "application/xml" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${suiteName.replace(/[^A-Za-z0-9_-]+/g, "_") || "run"}-junit.xml`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    downloadFile(blob, `${suiteName.replace(/[^A-Za-z0-9_-]+/g, "_") || "run"}-junit.xml`)
 }

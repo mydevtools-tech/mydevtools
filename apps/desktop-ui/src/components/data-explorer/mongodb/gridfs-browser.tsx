@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { IconRefresh, IconUpload, IconDownload, IconTrash, IconLoader2, IconFile } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { downloadFile } from "@/lib/desktop/save-file";
 
 interface GridFsFile {
     id: unknown;
@@ -102,12 +103,7 @@ export function GridFsBrowser({
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
             const bytes = Uint8Array.from(atob(data.data), (c) => c.charCodeAt(0));
-            const url = URL.createObjectURL(new Blob([bytes]));
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = f.filename || "gridfs-file";
-            a.click();
-            URL.revokeObjectURL(url);
+            downloadFile(new Blob([bytes]), f.filename || "gridfs-file");
         } catch (e: any) {
             toast.error(e.message || "Download failed");
         } finally {

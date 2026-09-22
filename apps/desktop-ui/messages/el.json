@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "Προτιμήσεις διεπαφής",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "Φόρτωση επεξεργαστή…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "Εικόνα σε Base64",
@@ -4890,7 +4896,9 @@
     "copy": "Αντιγραφή",
     "headSnippet": "Απόσπασμα HTML head",
     "downloadIco": "Λήψη favicon.ico",
-    "downloadZip": "Λήψη όλων (.zip)"
+    "downloadZip": "Λήψη όλων (.zip)",
+    "loadError": "Αποτυχία φόρτωσης εικόνας",
+    "saveError": "Δεν ήταν δυνατή η αποθήκευση του αρχείου"
   },
   "JsonDiff": {
     "title": "Διαφορές JSON",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(Διάστημα)",
-      "keyLabel": "event.key",
+      "keyLabel": "Πλήκτρο",
       "repeat": "επανάληψη"
     },
     "copyJson": "Αντιγραφή JSON",
     "copiedJson": "Το JSON του συμβάντος αντιγράφηκε στο πρόχειρο",
     "deprecated": "καταργημένο",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "Κωδικός",
+      "keyCode": "Κωδικός πλήκτρου",
+      "which": "Which",
+      "location": "Θέση"
     },
     "location": {
       "standard": "Τυπική",

@@ -9,7 +9,6 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { saveAs } from 'file-saver'
 import {
   layoutGraph,
   NODE_STYLE,
@@ -18,6 +17,7 @@ import {
   type JsonGraph,
   type LaidOutNode,
 } from '@/lib/json-visualizer'
+import { downloadFile } from '@/lib/desktop/save-file'
 
 const TYPE_COLORS: Record<string, string> = {
   string: '#10b981',
@@ -123,11 +123,11 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
     if (!svg || !content) return
     const serialized = serializeGraphSvg(svg, content, l)
     if (format === 'svg') {
-      saveAs(new Blob([serialized], { type: 'image/svg+xml' }), `${filename}.svg`)
+      downloadFile(new Blob([serialized], { type: 'image/svg+xml' }), `${filename}.svg`)
       return
     }
     const blob = await svgToPngBlob(serialized, l.width + EXPORT_PADDING * 2, l.height + EXPORT_PADDING * 2)
-    if (blob) saveAs(blob, `${filename}.png`)
+    if (blob) downloadFile(blob, `${filename}.png`)
   }, [])
 
   useImperativeHandle(ref, () => ({ fitView, zoomBy, centerOn, exportImage }), [

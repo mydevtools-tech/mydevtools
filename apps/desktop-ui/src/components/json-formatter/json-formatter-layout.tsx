@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useTranslations } from 'next-intl'
 import { useIsMobile } from '@/components/hooks/use-mobile'
@@ -24,6 +24,7 @@ import {
 import { toast } from 'sonner'
 import type { Mode, Content, OnChangeStatus } from 'vanilla-jsoneditor'
 import { fetchAllPages } from '@/lib/fetch-all-pages'
+import { docTime, formatDocDate } from '@/lib/json-formatter-docs'
 import { ToolPageHeader } from '@/components/tools/tool-page-header'
 import { ToolMobileTabs } from '@/components/tools/tool-mobile-tabs'
 import { RevealItem } from '@/components/dashboard/dashboard-reveal'
@@ -100,8 +101,9 @@ type JsonFormatterDocumentOut = {
   title: string
   pane: PaneKey
   content: string
-  createdAt: string
-  updatedAt: string
+  // Local router stores these as epoch ms; older/remote rows may be ISO strings.
+  createdAt: string | number
+  updatedAt: string | number
 }
 
 const DOCS_PAGE_SIZE = 500
@@ -162,13 +164,6 @@ export function JsonFormatterLayout() {
   const [loadPane, setLoadPane] = useState<PaneKey>('left')
   const [docsLoading, setDocsLoading] = useState(false)
   const [docs, setDocs] = useState<JsonFormatterDocumentOut[]>([])
-
-  const docsByPane = useMemo(() => {
-    return {
-      left: docs.filter((d) => d.pane === 'left'),
-      right: docs.filter((d) => d.pane === 'right'),
-    }
-  }, [docs])
 
   const updatePane = (pane: PaneKey, updater: (prev: PaneState) => PaneState) => {
     if (pane === 'left') {
@@ -330,7 +325,12 @@ export function JsonFormatterLayout() {
       },
     })
 
-    setDocs(allDocs)
+    // Newest first — the local router lists oldest-first, and saves repeat titles.
+    setDocs(
+      [...allDocs].sort(
+        (a, b) => docTime(b.updatedAt || b.createdAt) - docTime(a.updatedAt || a.createdAt)
+      )
+    )
   }
 
   const openLoadDialog = async (pane: PaneKey) => {
@@ -564,14 +564,14 @@ export function JsonFormatterLayout() {
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Load saved JSON</ResponsiveModalTitle>
           <ResponsiveModalDescription>
-            Pick a previously saved JSON document from your account.
+            Pick any previously saved JSON document — saves from both panes are listed.
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
         <ResponsiveModalBody>
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="text-xs text-muted-foreground">
-              Load into <span className="font-medium">{loadPane}</span>
+              Load into <span className="font-medium">{loadPane === 'right' ? 'Tree' : 'Text'}</span> pane
             </div>
             <Button
               variant="outline"
@@ -595,13 +595,13 @@ export function JsonFormatterLayout() {
             <div className="p-2">
               {docsLoading ? (
                 <div className="p-4 text-sm text-muted-foreground">Loading…</div>
-              ) : docsByPane[loadPane].length === 0 ? (
+              ) : docs.length === 0 ? (
                 <div className="p-4 text-sm text-muted-foreground">
                   No saved documents yet.
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {docsByPane[loadPane].map((d) => (
+                  {docs.map((d) => (
                     <button
                       key={d.id}
                       className="w-full rounded-md border px-3 py-2 text-left hover:bg-muted transition-colors"
@@ -611,11 +611,11 @@ export function JsonFormatterLayout() {
                         <div className="min-w-0">
                           <div className="truncate text-sm font-medium">{d.title}</div>
                           <div className="truncate text-xs text-muted-foreground">
-                            {d.updatedAt || d.createdAt}
+                            {formatDocDate(d.updatedAt || d.createdAt)}
                           </div>
                         </div>
                         <div className="shrink-0 text-xs text-muted-foreground">
-                          {d.pane}
+                          {d.pane === 'right' ? 'Tree' : 'Text'}
                         </div>
                       </div>
                     </button>

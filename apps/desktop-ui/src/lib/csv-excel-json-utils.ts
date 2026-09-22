@@ -2,6 +2,8 @@
  * CSV / Excel ↔ JSON helpers (browser). Dates: CSV ISO-like strings stay strings;
  * Excel uses cellDates + serial fallback → ISO strings in JSON.
  */
+import type { BookType, WorkBook } from "xlsx";
+import { downloadFile } from "@/lib/desktop/save-file";
 
 export function parseCSVLine(line: string): string[] {
   const result: string[] = [];
@@ -140,13 +142,21 @@ export function rowsToCSV(rows: Record<string, unknown>[]): string {
   return [header, ...body].join("\n");
 }
 
-export function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+const WORKBOOK_MIME: Partial<Record<BookType, string>> = {
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  csv: "text/csv;charset=utf-8",
+  txt: "text/plain;charset=utf-8",
+};
+
+/**
+ * Write a SheetJS workbook to a file. `XLSX.writeFile` builds its own anchor
+ * download, which the Tauri webview cancels — serialize and hand the bytes to
+ * downloadFile instead.
+ */
+export async function downloadWorkbook(wb: WorkBook, filename: string, bookType: BookType = "xlsx") {
+  const XLSX = await import("xlsx");
+  const data = XLSX.write(wb, { type: "array", bookType }) as ArrayBuffer;
+  downloadFile(new Uint8Array(data), filename, WORKBOOK_MIME[bookType]);
 }
 
 export async function rowsToXlsxFile(
@@ -158,5 +168,5 @@ export async function rowsToXlsxFile(
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31) || "Sheet1");
-  XLSX.writeFile(wb, filename);
+  await downloadWorkbook(wb, filename);
 }

@@ -1,5 +1,6 @@
 import type React from 'react'
 import { sidebarData } from '@/components/sidebar/data/sidebar-data'
+import { findItemByUrl } from '@/components/dashboard/types'
 import { type DashboardAnalyticsSummary } from '@/lib/dashboard-analytics-api'
 
 export function sumTrackedItems(d: DashboardAnalyticsSummary): number {
@@ -28,8 +29,18 @@ export function timeAgo(date: Date): string {
   return `${Math.floor(mins / 60)}h ago`
 }
 
-// Resolve a "groupIndex-itemIndex[-subIndex]" id to a ToolItem
+/**
+ * Resolve a usage-history key to a ToolItem.
+ *
+ * Usage is keyed by route path (`/app/json-formatter`). The positional
+ * "groupIndex-itemIndex[-subIndex]" lookup below is kept for history written
+ * before that, and is intentionally the fallback: positions shift whenever
+ * sidebar-data is reordered.
+ */
 export function findToolById(id: string): { title: string; icon?: React.ElementType } | undefined {
+  const byUrl = findItemByUrl(id)
+  if (byUrl) return { title: byUrl.title, icon: byUrl.icon as React.ElementType | undefined }
+
   const parts = id.split('-').map(Number)
   if (parts.some(isNaN) || parts.length < 2) return undefined
   const [gi, ii, si] = parts

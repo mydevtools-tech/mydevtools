@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, Check, Copy, Download, Trash2 } from 'lucide-react';
+import { AlertCircle, Check, Copy, Trash2 } from 'lucide-react';
 import { IconBraces } from '@tabler/icons-react';
 import { ToolShell } from '@/components/tools/tool-shell';
 import { IOPanel } from '@/components/tools/io-panel';
@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { triggerDownload } from '@/lib/csv-excel-json-utils';
 import { highlightSchemaOutput } from '@/lib/hljs-json-schema-output';
 import {
   collectFormats,
@@ -31,7 +30,7 @@ import {
   type StringFormat,
 } from '@/lib/json-schema-generator';
 import { Badge } from '@/components/ui/badge';
-import './json-schema-highlighter.css';
+import '@/components/tools/hljs-theme.css';
 import { JsonSchemaInputEditor } from './json-schema-input-editor';
 
 const defaultSample = `{
@@ -44,18 +43,6 @@ const defaultSample = `{
   },
   "scores": [9.5, 8.0]
 }`;
-
-const FILE_EXT: Record<OutputLanguage, string> = {
-  jsonSchema: 'json',
-  python: 'py',
-  typescript: 'ts',
-  go: 'go',
-  rust: 'rs',
-  java: 'java',
-  csharp: 'cs',
-  dart: 'dart',
-  swift: 'swift',
-};
 
 export function JsonSchemaGeneratorLayout() {
   const t = useTranslations('JsonSchemaGenerator');
@@ -97,14 +84,6 @@ export function JsonSchemaGeneratorLayout() {
     });
   }, [output, t, copyToClipboard]);
 
-  const handleDownload = useCallback(() => {
-    if (!output || error) return;
-    const ext = FILE_EXT[language];
-    const filename = language === 'jsonSchema' ? 'schema.json' : `generated.${ext}`;
-    const mime = language === 'jsonSchema' ? 'application/json' : 'text/plain';
-    triggerDownload(new Blob([output], { type: `${mime};charset=utf-8` }), filename);
-  }, [output, error, language]);
-
   const handleClear = () => {
     setInput('');
   };
@@ -140,10 +119,6 @@ export function JsonSchemaGeneratorLayout() {
             <Copy className="mr-1.5 h-3.5 w-3.5" />
           )}
           {t('copy')}
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleDownload} disabled={!output || !!error}>
-          <Download className="mr-1.5 h-3.5 w-3.5" />
-          {t('download')}
         </Button>
       </div>
     </div>
@@ -211,7 +186,7 @@ export function JsonSchemaGeneratorLayout() {
               </div>
             ) : (
               <ScrollArea className="absolute inset-0 h-full">
-                <div className="json-schema-hl min-h-full" role="region" aria-label={t('outputLabel')}>
+                <div className="hljs-theme min-h-full" role="region" aria-label={t('outputLabel')}>
                   {output ? (
                     <pre className="m-0 font-mono">
                       <code

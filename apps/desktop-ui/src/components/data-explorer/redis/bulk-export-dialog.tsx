@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import type { ExportedKey } from "./bulk-types";
+import { downloadFile } from "@/lib/desktop/save-file";
 
 export function BulkExportDialog({
     open,
@@ -41,12 +42,7 @@ export function BulkExportDialog({
             const body = await res.json() as { keys?: ExportedKey[]; count?: number; truncated?: boolean; error?: string };
             if (body.error) throw new Error(body.error);
             const blob = new Blob([JSON.stringify(body, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `redis-export-db${db}-${Date.now()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
+            downloadFile(blob, `redis-export-db${db}-${Date.now()}.json`);
             toast.success(`Exported ${body.count ?? 0} key(s)${body.truncated ? " (truncated)" : ""}`);
             onOpenChange(false);
         } catch (err) {

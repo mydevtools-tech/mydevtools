@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl';
 import { IconPhoto } from '@tabler/icons-react';
 import { ToolShell } from '@/components/tools/tool-shell';
 import { ToolPanels, IOPanel, ToolTextArea } from '@/components/tools/io-panel';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 type Mode = 'dataUri' | 'rawString';
 
@@ -68,12 +69,7 @@ export function ImageToBase64Layout() {
     const textToDownload = mode === 'rawString' ? output.replace(/^data:image\/[a-z]+;base64,/, '') : output;
     if (!textToDownload) return;
     const blob = new Blob([textToDownload], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = t('download.filename');
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, t('download.filename'));
   };
 
   const handleDrop = (e: React.DragEvent) => {

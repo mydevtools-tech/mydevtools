@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "Preferenze interfaccia",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "Caricamento editor…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "Immagine in Base64",
@@ -4890,7 +4896,9 @@
     "copy": "Copia",
     "headSnippet": "Snippet per l'head HTML",
     "downloadIco": "Scarica favicon.ico",
-    "downloadZip": "Scarica tutto (.zip)"
+    "downloadZip": "Scarica tutto (.zip)",
+    "loadError": "Impossibile caricare l'immagine",
+    "saveError": "Impossibile salvare il file"
   },
   "JsonDiff": {
     "title": "Diff JSON",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(Spazio)",
-      "keyLabel": "event.key",
+      "keyLabel": "Tasto",
       "repeat": "ripetizione"
     },
     "copyJson": "Copia JSON",
     "copiedJson": "JSON dell'evento copiato negli appunti",
     "deprecated": "deprecato",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "Codice",
+      "keyCode": "Codice tasto",
+      "which": "Which",
+      "location": "Posizione"
     },
     "location": {
       "standard": "Standard",

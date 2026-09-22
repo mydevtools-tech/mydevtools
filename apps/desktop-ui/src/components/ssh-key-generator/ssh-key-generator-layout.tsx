@@ -21,6 +21,7 @@ import { ToolShell } from '@/components/tools/tool-shell';
 import { IOPanel } from '@/components/tools/io-panel';
 import { CopyTextButton } from '@/components/tools/copy-text-button';
 import { ToolErrorBanner } from '@/components/tools/tool-error-banner';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 type KeyType = 'ed25519' | 'rsa-2048' | 'rsa-4096';
 
@@ -215,12 +216,7 @@ async function generateKeys(type: KeyType, comment: string): Promise<GeneratedKe
 
 function downloadText(text: string, filename: string) {
   const blob = new Blob([text], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadFile(blob, filename);
 }
 
 function KeyBlock({

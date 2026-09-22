@@ -19,6 +19,7 @@ import { IconBrandDocker } from '@tabler/icons-react'
 import { CopyTextButton } from '@/components/tools/copy-text-button'
 import { ToolShell } from '@/components/tools/tool-shell'
 import { ToolPanels, IOPanel, ToolTextArea } from '@/components/tools/io-panel'
+import { downloadFile } from '@/lib/desktop/save-file'
 
 const PRESETS: { id: string; services: string[] }[] = [
   { id: 'stackWeb', services: ['postgres', 'redis', 'nginx'] },
@@ -96,12 +97,7 @@ export function DockerComposeGeneratorLayout() {
   const downloadYaml = () => {
     if (!yaml || selectedList.length === 0) return
     const blob = new Blob([yaml], { type: 'text/yaml;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'docker-compose.yml'
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadFile(blob, 'docker-compose.yml')
   }
 
   return (

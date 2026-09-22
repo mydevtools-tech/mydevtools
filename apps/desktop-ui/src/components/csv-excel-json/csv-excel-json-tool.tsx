@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import {
   IconCopy,
   IconDownload,
@@ -17,15 +16,14 @@ import { Button } from "@/components/ui/button";
 import { ToolPinButton } from "@/components/tools/tool-header";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { IOPanel, ToolTextArea } from "@/components/tools/io-panel";
-import { useToolUsage } from "@/hooks/use-tool-usage";
 import { cn } from "@/lib/utils";
+import { downloadFile } from "@/lib/desktop/save-file";
 import {
   csvTextToRows,
   excelBufferToRows,
   parseJsonToRows,
   rowsToCSV,
   rowsToXlsxFile,
-  triggerDownload,
 } from "@/lib/csv-excel-json-utils";
 
 const SAMPLE_JSON = `[
@@ -35,17 +33,11 @@ const SAMPLE_JSON = `[
 
 export function CsvExcelJsonTool() {
   const t = useTranslations("CsvExcelJson");
-  const pathname = usePathname();
-  const { trackToolUsage } = useToolUsage();
   const [jsonText, setJsonText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const { isCopied: copied, copyToClipboard } = useCopyToClipboard();
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    trackToolUsage("csv-excel-json", pathname);
-  }, [pathname, trackToolUsage]);
 
   const applyRows = useCallback((rows: Record<string, unknown>[]) => {
     setJsonText(JSON.stringify(rows, null, 2));
@@ -109,10 +101,7 @@ export function CsvExcelJsonTool() {
     try {
       const rows = parseJsonToRows(jsonText);
       const csv = rowsToCSV(rows);
-      triggerDownload(
-        new Blob([csv], { type: "text/csv;charset=utf-8" }),
-        t("filenames.csv")
-      );
+      downloadFile(csv, t("filenames.csv"), "text/csv;charset=utf-8");
       toast.success(t("toastExportedCsv"));
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("errors.exportFailed");

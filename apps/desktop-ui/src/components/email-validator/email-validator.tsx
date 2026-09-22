@@ -44,6 +44,8 @@ import { motion } from "framer-motion";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useTranslations } from "next-intl";
 import { validateEmail, validateEmails, type EmailValidationResult } from "@/lib/email-validator";
+import { downloadFile } from "@/lib/desktop/save-file";
+import { downloadWorkbook } from "@/lib/csv-excel-json-utils";
 
 type EmailValidation = EmailValidationResult;
 type BulkResult = EmailValidationResult;
@@ -275,7 +277,7 @@ export function EmailValidator() {
         const ws = XLSX.utils.json_to_sheet(sheetData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, validOnly ? t("sheets.validEmails") : t("sheets.results"));
-        XLSX.writeFile(wb, validOnly ? "valid_emails.xlsx" : "email_validation_results.xlsx");
+        await downloadWorkbook(wb, validOnly ? "valid_emails.xlsx" : "email_validation_results.xlsx");
 
         toast.success(t("toasts.exportSuccessTitle"), {
             description: validOnly
@@ -331,14 +333,7 @@ export function EmailValidator() {
 
         const csvContent = csvRows.join("\n");
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = validOnly ? "valid_emails.csv" : "email_validation_results.csv";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        downloadFile(blob, validOnly ? "valid_emails.csv" : "email_validation_results.csv");
 
         toast.success(t("toasts.exportSuccessTitle"), {
             description: validOnly
@@ -353,7 +348,7 @@ export function EmailValidator() {
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, t("sheets.template"));
-        XLSX.writeFile(wb, "email_validation_template.xlsx");
+        await downloadWorkbook(wb, "email_validation_template.xlsx");
     };
 
     const getStatusColor = (status: string) => {

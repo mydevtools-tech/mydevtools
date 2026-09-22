@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import JSZip from 'jszip'
-import { saveAs } from 'file-saver'
 import { toast } from 'sonner'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { Button } from '@/components/ui/button'
@@ -15,6 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Check, Copy, Download, Package, Trash2, Upload } from 'lucide-react'
 import { IconFavicon } from '@tabler/icons-react'
 import { ToolShell } from '@/components/tools/tool-shell'
+import { saveFile } from '@/lib/desktop/save-file'
 import {
   ICON_SIZES,
   ICO_SIZES,
@@ -130,11 +130,11 @@ export function FaviconGeneratorLayout() {
       URL.revokeObjectURL(url)
     }
     img.onerror = () => {
-      toast.error('Failed to load image')
+      toast.error(t('loadError'))
       URL.revokeObjectURL(url)
     }
     img.src = url
-  }, [])
+  }, [t])
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -146,38 +146,48 @@ export function FaviconGeneratorLayout() {
     [loadFile],
   )
 
-  const getIcon = (size: number, maskable = false) =>
-    icons.find((i) => i.size === size && i.maskable === maskable)
-
-  const downloadIco = useCallback(() => {
-    const images = ICO_SIZES.map((size) => {
-      const icon = getIcon(size)
-      return { size, png: icon!.bytes }
-    })
-    if (images.some((i) => !i.png)) return
-    const ico = buildIco(images)
-    saveAs(new Blob([ico as BlobPart], { type: 'image/x-icon' }), 'favicon.ico')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  /** ICO payload for the current icons, or null while a size is still missing. */
+  const buildIcoBytes = useCallback(() => {
+    const images = ICO_SIZES.map((size) => icons.find((i) => i.size === size && !i.maskable))
+    if (images.some((icon) => !icon)) return null
+    return buildIco(images.map((icon) => ({ size: icon!.size, png: icon!.bytes })))
   }, [icons])
 
-  const downloadPng = (icon: RenderedIcon) => {
-    saveAs(new Blob([icon.bytes as BlobPart], { type: 'image/png' }), pngFileName(icon.size, icon.maskable))
+  const downloadIco = useCallback(async () => {
+    const ico = buildIcoBytes()
+    if (!ico) return
+    try {
+      await saveFile(ico, 'favicon.ico', 'image/x-icon')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('saveError'))
+    }
+  }, [buildIcoBytes, t])
+
+  const downloadPng = async (icon: RenderedIcon) => {
+    try {
+      await saveFile(icon.bytes, pngFileName(icon.size, icon.maskable), 'image/png')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('saveError'))
+    }
   }
 
   const downloadZip = useCallback(async () => {
-    if (icons.length === 0) return
-    const zip = new JSZip()
-    const icoImages = ICO_SIZES.map((size) => ({ size, png: getIcon(size)!.bytes }))
-    zip.file('favicon.ico', buildIco(icoImages))
-    for (const icon of icons) {
-      zip.file(pngFileName(icon.size, icon.maskable), icon.bytes)
+    const ico = buildIcoBytes()
+    if (!ico) return
+    try {
+      const zip = new JSZip()
+      zip.file('favicon.ico', ico)
+      for (const icon of icons) {
+        zip.file(pngFileName(icon.size, icon.maskable), icon.bytes)
+      }
+      zip.file('site.webmanifest', manifestSnippet)
+      zip.file('head-snippet.html', headSnippet)
+      const bytes = await zip.generateAsync({ type: 'uint8array' })
+      await saveFile(bytes, 'favicons.zip', 'application/zip')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('saveError'))
     }
-    zip.file('site.webmanifest', manifestSnippet)
-    zip.file('head-snippet.html', headSnippet)
-    const blob = await zip.generateAsync({ type: 'blob' })
-    saveAs(blob, 'favicons.zip')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [icons, manifestSnippet, headSnippet])
+  }, [buildIcoBytes, icons, manifestSnippet, headSnippet, t])
 
   const copySnippet = (key: string, text: string) => {
     void copyToClipboard(text, { silent: true })
@@ -318,7 +328,7 @@ export function FaviconGeneratorLayout() {
           </div>
 
           <div className="mt-auto flex flex-col gap-2">
-            <Button size="sm" onClick={downloadIco}>
+            <Button size="sm" onClick={() => void downloadIco()}>
               <Download className="mr-1.5 h-4 w-4" />
               {t('downloadIco')}
             </Button>

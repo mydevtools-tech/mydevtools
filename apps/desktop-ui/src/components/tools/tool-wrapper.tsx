@@ -1,14 +1,11 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useToolUsage } from '@/hooks/use-tool-usage';
-import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 interface ToolWrapperProps {
   children: ReactNode;
-  toolId: string;
   className?: string;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '5xl' | 'full';
   /** Fill the app main column with minimal padding (full-height tools). */
@@ -27,24 +24,18 @@ const maxWidthClasses = {
 };
 
 /**
- * Base wrapper component for all tools
- * Provides consistent layout and tracks tool usage
+ * Base wrapper component for all tools — consistent layout only.
+ *
+ * Usage history is recorded centrally in the app shell (`ToolUsageTracker` in
+ * components/sidebar/client-layout.tsx) so that every tool is counted, not just
+ * the handful that happen to render this wrapper.
  */
 export function ToolWrapper({
   children,
-  toolId,
   className = '',
   maxWidth = '4xl',
   fillMain = false,
 }: ToolWrapperProps) {
-  const pathname = usePathname();
-  const { trackToolUsage } = useToolUsage();
-
-  // Track tool usage when component mounts
-  useEffect(() => {
-    trackToolUsage(toolId, pathname);
-  }, [toolId, pathname, trackToolUsage]);
-
   return (
     <div
       className={cn(

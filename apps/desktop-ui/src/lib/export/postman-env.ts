@@ -3,6 +3,7 @@
  */
 
 import type { Environment } from "@/components/api-client/use-environments"
+import { downloadFile } from "@/lib/desktop/save-file"
 
 export function exportPostmanEnvironment(env: Environment): string {
     return JSON.stringify(
@@ -24,12 +25,5 @@ export function exportPostmanEnvironment(env: Environment): string {
 export function downloadEnvironmentAsPostman(env: Environment): void {
     if (typeof window === "undefined") return
     const blob = new Blob([exportPostmanEnvironment(env)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${env.name.replace(/[^a-zA-Z0-9-_]+/g, "_") || "environment"}.postman_environment.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    downloadFile(blob, `${env.name.replace(/[^a-zA-Z0-9-_]+/g, "_") || "environment"}.postman_environment.json`)
 }

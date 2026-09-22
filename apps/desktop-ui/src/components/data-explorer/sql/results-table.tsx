@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { QueryResult, SchemaInfo } from "./types";
 import type { AnySqlConfig } from "@/lib/data-explorer/sql-api";
 import { sqlBody } from "@/lib/sql-request";
+import { downloadFile } from "@/lib/desktop/save-file";
 
 /**
  * A BLOB the server could not decode as text. Rust sends hex plus the true
@@ -179,12 +180,7 @@ export function ResultsTable({ result, editable }: ResultsTableProps) {
         );
         const csv = [header, ...rows].join("\n");
         const blob = new Blob([csv], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "query-results.csv";
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadFile(blob, "query-results.csv");
     };
 
     const formatCell = (value: unknown): string => {

@@ -1,8 +1,23 @@
+import { apiFetch } from '@/lib/desktop/api-fetch'
+
 export type DashboardTaskStats = {
   total: number
   completed: number
   ongoing: number
   notStarted: number
+}
+
+/**
+ * Secure Files storage, measured from the object folder itself — so the count
+ * and the bytes on disk are real even while the vault is locked. `unlocked`
+ * says whether the file names behind those bytes are readable right now.
+ */
+export type DashboardFileStats = {
+  count: number
+  physicalBytes: number
+  lastModifiedAt: number
+  configured: boolean
+  unlocked: boolean
 }
 
 export type DashboardAnalyticsSummary = {
@@ -18,10 +33,26 @@ export type DashboardAnalyticsSummary = {
   apiClientHistoryEntries: number
   jsonFormatterDocuments: number
   codeSnippets: number
+  files: DashboardFileStats
 }
 
 function num(v: unknown): number {
   return typeof v === 'number' && Number.isFinite(v) ? v : 0
+}
+
+function bool(v: unknown): boolean {
+  return v === true
+}
+
+function normalizeFiles(f: unknown): DashboardFileStats {
+  const obj = (f && typeof f === 'object' ? f : {}) as Record<string, unknown>
+  return {
+    count: num(obj.count),
+    physicalBytes: num(obj.physicalBytes),
+    lastModifiedAt: num(obj.lastModifiedAt),
+    configured: bool(obj.configured),
+    unlocked: bool(obj.unlocked),
+  }
 }
 
 function normalizeTasks(t: unknown): DashboardTaskStats {
@@ -34,49 +65,52 @@ function normalizeTasks(t: unknown): DashboardTaskStats {
   }
 }
 
-function parse(key: string): unknown {
-  try {
-    if (typeof window === 'undefined') return null
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
+export const EMPTY_ANALYTICS_SUMMARY: DashboardAnalyticsSummary = {
+  passwordEntries: 0,
+  bookmarks: 0,
+  bookmarkFolders: 0,
+  tasks: normalizeTasks(null),
+  projects: 0,
+  nosqlConnections: 0,
+  notes: 0,
+  apiClientCollections: 0,
+  apiClientEnvironments: 0,
+  apiClientHistoryEntries: 0,
+  jsonFormatterDocuments: 0,
+  codeSnippets: 0,
+  files: normalizeFiles(null),
 }
 
-function arrayLen(key: string): number {
-  const v = parse(key)
-  return Array.isArray(v) ? v.length : 0
+/** Shape the local router returns; every field is validated before use. */
+export function normalizeAnalyticsSummary(raw: unknown): DashboardAnalyticsSummary {
+  const o = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  return {
+    passwordEntries: num(o.passwordEntries),
+    bookmarks: num(o.bookmarks),
+    bookmarkFolders: num(o.bookmarkFolders),
+    tasks: normalizeTasks(o.tasks),
+    projects: num(o.projects),
+    nosqlConnections: num(o.nosqlConnections),
+    notes: num(o.notes),
+    apiClientCollections: num(o.apiClientCollections),
+    apiClientEnvironments: num(o.apiClientEnvironments),
+    apiClientHistoryEntries: num(o.apiClientHistoryEntries),
+    jsonFormatterDocuments: num(o.jsonFormatterDocuments),
+    codeSnippets: num(o.codeSnippets),
+    files: normalizeFiles(o.files),
+  }
 }
 
 /**
- * Local, offline analytics — counts data straight from the browser's own
- * persistence instead of a backend. Only tools that actually persist locally
- * report real numbers today: code snippets (zustand persist) and the API
- * client (collections / environments / history in localStorage).
+ * Live counts from the local store (SQLCipher via the Rust router), computed
+ * there with one grouped query — the UI never downloads rows just to count
+ * them, so this stays cheap enough to re-run on every dashboard visit.
  *
- * ponytail: passwords, bookmarks, tasks, notes, projects, nosql and JSON docs
- * still live in the (encrypted) backend vault / MongoDB, so they read 0 until
- * those tools move to local storage. The panel renders 0s gracefully.
+ * Outside the desktop app there is no local router, so the request 404s and the
+ * panel renders zeros rather than an error.
  */
 export async function fetchDashboardAnalyticsSummary(): Promise<DashboardAnalyticsSummary> {
-  const snippetStore = parse('snippet-manager-storage-v1') as
-    | { state?: { snippets?: unknown } }
-    | null
-  const snippets = snippetStore?.state?.snippets
-
-  return {
-    passwordEntries: 0,
-    bookmarks: 0,
-    bookmarkFolders: 0,
-    tasks: normalizeTasks(null),
-    projects: 0,
-    nosqlConnections: 0,
-    notes: 0,
-    apiClientCollections: arrayLen('api-client-collections'),
-    apiClientEnvironments: arrayLen('api-client-environments'),
-    apiClientHistoryEntries: arrayLen('api-client-history'),
-    jsonFormatterDocuments: 0,
-    codeSnippets: Array.isArray(snippets) ? snippets.length : 0,
-  }
+  const res = await apiFetch('/api/backend/dashboard/analytics')
+  if (!res.ok) return EMPTY_ANALYTICS_SUMMARY
+  return normalizeAnalyticsSummary(await res.json())
 }

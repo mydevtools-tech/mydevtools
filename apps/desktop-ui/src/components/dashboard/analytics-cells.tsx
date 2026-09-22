@@ -57,17 +57,21 @@ export function SectionHeader({
 export function MetricChip({
   label,
   value,
+  display: displayOverride,
   icon: Icon,
   accent,
   href,
 }: {
   label: string
   value: number
+  /** Pre-formatted value (byte sizes, durations) — skips the count-up. */
+  display?: string
   icon: React.ElementType
   accent: string
   href: string
 }) {
-  const display = useCountUp(value)
+  const counted = useCountUp(value)
+  const display = displayOverride ?? counted
   const isEmpty = value === 0
   return (
     <Link

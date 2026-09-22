@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "Předvolby rozhraní",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "Načítání editoru…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "Obrázek do Base64",
@@ -4890,7 +4896,9 @@
     "copy": "Kopírovat",
     "headSnippet": "Úryvek HTML head",
     "downloadIco": "Stáhnout favicon.ico",
-    "downloadZip": "Stáhnout vše (.zip)"
+    "downloadZip": "Stáhnout vše (.zip)",
+    "loadError": "Obrázek se nepodařilo načíst",
+    "saveError": "Soubor se nepodařilo uložit"
   },
   "JsonDiff": {
     "title": "Porovnání JSON",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(Mezerník)",
-      "keyLabel": "event.key",
+      "keyLabel": "Klávesa",
       "repeat": "opakování"
     },
     "copyJson": "Kopírovat JSON",
     "copiedJson": "JSON události zkopírován do schránky",
     "deprecated": "zastaralé",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "Kód",
+      "keyCode": "Kód klávesy",
+      "which": "Which",
+      "location": "Umístění"
     },
     "location": {
       "standard": "Standardní",

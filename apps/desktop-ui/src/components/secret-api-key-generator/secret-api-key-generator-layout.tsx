@@ -29,6 +29,7 @@ import {
   type GenerateSecretStringsErrorKey,
 } from '@/lib/generate-secret-strings';
 import { entropyBits, strengthBucket, type SecretStrength } from '@/lib/secret-entropy';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 const PRESET_BASE64URL =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
@@ -130,12 +131,7 @@ export function SecretApiKeyGeneratorLayout() {
   const handleDownload = () => {
     if (!output) return;
     const blob = new Blob([output], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = t('download.filename');
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, t('download.filename'));
   };
 
   return (

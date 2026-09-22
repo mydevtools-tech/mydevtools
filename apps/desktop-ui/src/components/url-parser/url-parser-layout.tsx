@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl'
 import { IconLink } from '@tabler/icons-react'
 import { ToolShell } from '@/components/tools/tool-shell'
 import { ToolPanels, IOPanel, ToolTextArea } from '@/components/tools/io-panel'
+import { downloadFile } from '@/lib/desktop/save-file'
 
 type ParsedParam = {
   key: string
@@ -71,12 +72,7 @@ function DownloadJsonButton({ data, filename, title }: { data: unknown; filename
       className="h-6 w-6"
       onClick={() => {
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = filename
-        a.click()
-        URL.revokeObjectURL(url)
+        downloadFile(blob, filename)
       }}
       title={title}
     >

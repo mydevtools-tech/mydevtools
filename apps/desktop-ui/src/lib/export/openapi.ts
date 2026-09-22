@@ -13,6 +13,7 @@
  * Output is a JSON OpenAPI 3.0 document. YAML conversion can be done with `js-yaml`
  * client-side if needed.
  */
+import { downloadFile } from "@/lib/desktop/save-file"
 
 import type {
     Collection,
@@ -206,12 +207,5 @@ export function downloadCollectionAsOpenApi(collection: Collection): void {
     if (typeof window === "undefined") return
     const doc = exportCollectionAsOpenApi(collection)
     const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${collection.name.replace(/[^A-Za-z0-9_-]+/g, "_") || "openapi"}.openapi.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    downloadFile(blob, `${collection.name.replace(/[^A-Za-z0-9_-]+/g, "_") || "openapi"}.openapi.json`)
 }

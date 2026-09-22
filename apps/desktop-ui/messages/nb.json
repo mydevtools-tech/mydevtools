@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "Grensesnittpreferanser",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "Laster inn redigeringsprogrammet…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "Bilde til Base64",
@@ -4890,7 +4896,9 @@
     "copy": "Kopier",
     "headSnippet": "HTML head-utdrag",
     "downloadIco": "Last ned favicon.ico",
-    "downloadZip": "Last ned alle (.zip)"
+    "downloadZip": "Last ned alle (.zip)",
+    "loadError": "Kunne ikke laste inn bildet",
+    "saveError": "Kunne ikke lagre filen"
   },
   "JsonDiff": {
     "title": "JSON-diff",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(Mellomrom)",
-      "keyLabel": "event.key",
+      "keyLabel": "Tast",
       "repeat": "gjentakelse"
     },
     "copyJson": "Kopier JSON",
     "copiedJson": "Hendelses-JSON kopiert til utklippstavlen",
     "deprecated": "utdatert",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "Kode",
+      "keyCode": "Tastkode",
+      "which": "Which",
+      "location": "Plassering"
     },
     "location": {
       "standard": "Standard",

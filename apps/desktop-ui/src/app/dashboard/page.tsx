@@ -17,7 +17,7 @@ import {
   type RenderToolItem,
   type RenderGroup,
   createItemId,
-  findItemById,
+  findItemByUrl,
   getTotalToolCount,
   POPULAR_TOOL_URLS,
 } from '@/components/dashboard/types'
@@ -75,12 +75,13 @@ const DashboardPage: React.FC = () => {
 
   const totalTools = useMemo(() => getTotalToolCount(), [])
 
-  // Get recently used tools
+  // Get recently used tools. Usage is keyed by route path; `usage.url` is the
+  // fallback for entries written before that (their toolId was a bare slug).
   useEffect(() => {
     const recent = getRecentlyUsedTools(8)
     const items = recent
       .map((usage) => {
-        const item = findItemById(usage.toolId)
+        const item = findItemByUrl(usage.toolId) ?? findItemByUrl(usage.url)
         return item ? { id: usage.toolId, timestamp: usage.timestamp, ...item } : null
       })
       .filter((item): item is FavoriteItem => !!item)

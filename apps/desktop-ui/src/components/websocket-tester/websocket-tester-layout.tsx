@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { saveAs } from 'file-saver'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,6 +26,7 @@ import { cn } from '@/lib/utils'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { ToolShell } from '@/components/tools/tool-shell'
 import { IOPanel, ToolTextArea } from '@/components/tools/io-panel'
+import { downloadFile } from '@/lib/desktop/save-file'
 import {
   describeCloseEvent,
   formatLogEntry,
@@ -242,7 +242,7 @@ export function WebsocketTesterLayout() {
     const blob = new Blob([entries.map(formatLogEntry).join('\n') + '\n'], {
       type: 'text/plain;charset=utf-8',
     })
-    saveAs(blob, `websocket-log-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`)
+    downloadFile(blob, `websocket-log-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`)
   }
 
   const isConnected = status === 'connected'

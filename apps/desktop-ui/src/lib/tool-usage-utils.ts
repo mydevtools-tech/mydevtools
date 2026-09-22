@@ -9,12 +9,30 @@ export const MAX_AGE_DAYS = 90
 
 const MAX_AGE_MS = MAX_AGE_DAYS * 24 * 60 * 60 * 1000
 
-/** Prepend `event`, then prune by age (relative to `now`) and total count. */
+/** Repeat opens of the same tool inside this window count once. */
+export const DEDUPE_WINDOW_MS = 1000
+
+/**
+ * Prepend `event`, then prune by age (relative to `now`) and total count.
+ *
+ * A repeat of the newest event's tool within `DEDUPE_WINDOW_MS` is dropped:
+ * React StrictMode mounts effects twice in development, and that would
+ * otherwise double every launch count.
+ */
 export function appendEvent(
   log: ToolUsage[],
   event: ToolUsage,
   now: number = Date.now(),
 ): ToolUsage[] {
+  const newest = log[0]
+  if (
+    newest &&
+    newest.toolId === event.toolId &&
+    event.timestamp - newest.timestamp < DEDUPE_WINDOW_MS
+  ) {
+    return log
+  }
+
   const cutoff = now - MAX_AGE_MS
   return [event, ...log].filter((e) => e.timestamp >= cutoff).slice(0, MAX_EVENTS)
 }

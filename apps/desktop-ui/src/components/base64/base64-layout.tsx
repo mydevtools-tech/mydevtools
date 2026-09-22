@@ -20,6 +20,7 @@ import { SendToMenu } from '@/components/ui/send-to-menu';
 import { IconTransform } from '@tabler/icons-react';
 import { ToolShell } from '@/components/tools/tool-shell';
 import { ToolPanels, IOPanel, ToolTextArea } from '@/components/tools/io-panel';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 type Mode = 'encode' | 'decode';
 
@@ -112,12 +113,7 @@ export function Base64Layout() {
   const handleDownload = () => {
     if (!output) return;
     const blob = new Blob([output], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = mode === 'encode' ? t('download.encodedFilename') : t('download.decodedFilename');
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, mode === 'encode' ? t('download.encodedFilename') : t('download.decodedFilename'));
   };
 
   const handleDrop = (e: React.DragEvent) => {

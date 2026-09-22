@@ -19,6 +19,7 @@ import { IconColorSwatch } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ToolShell } from '@/components/tools/tool-shell';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 type GradientType = 'linear' | 'radial' | 'conic';
 
@@ -94,17 +95,12 @@ export function GradientLayout() {
       if (ctx) {
         ctx.drawImage(img, 0, 0);
         try {
-          const png = canvas.toDataURL('image/png');
-          const a = document.createElement('a');
-          a.href = png;
-          a.download = 'gradient-wallpaper.png';
-          a.click();
+          canvas.toBlob((png) => {
+            downloadFile(png ?? blob, png ? 'gradient-wallpaper.png' : 'gradient-wallpaper.svg');
+          }, 'image/png');
         } catch {
           // If tainted canvas due to strict mode, download SVG directly as fallback
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'gradient-wallpaper.svg';
-          a.click();
+          downloadFile(blob, 'gradient-wallpaper.svg');
         }
       }
       URL.revokeObjectURL(url);

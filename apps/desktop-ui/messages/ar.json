@@ -697,7 +697,14 @@
       "activityEmpty": "Activity builds as you use tools",
       "distributionTitle": "Data distribution",
       "topToolsTitle": "Top tools",
-      "taskDonutTitle": "Task completion"
+      "taskDonutTitle": "Task completion",
+      "groupFiles": "Files",
+      "filesCount": "Encrypted files",
+      "filesOnDisk": "Size on disk",
+      "filesLastChange": "Last change",
+      "filesEmpty": "No encrypted files yet — import files to see storage stats.",
+      "filesNoFolder": "No storage folder yet — pick one to start encrypting files.",
+      "filesCta": "Open Files"
     },
     "ui": {
       "title": "تفضيلات الواجهة",
@@ -3426,8 +3433,7 @@
       "swift": "Swift (Codable)"
     },
     "editorLoading": "جاري تحميل المحرر…",
-    "detectedFormats": "Detected formats",
-    "download": "Download"
+    "detectedFormats": "Detected formats"
   },
   "ImageToBase64": {
     "title": "صورة إلى Base64",
@@ -4890,7 +4896,9 @@
     "copy": "نسخ",
     "headSnippet": "مقتطف HTML head",
     "downloadIco": "تنزيل favicon.ico",
-    "downloadZip": "تنزيل الكل (.zip)"
+    "downloadZip": "تنزيل الكل (.zip)",
+    "loadError": "تعذّر تحميل الصورة",
+    "saveError": "تعذّر حفظ الملف"
   },
   "JsonDiff": {
     "title": "فرق JSON",
@@ -4976,17 +4984,17 @@
     },
     "hero": {
       "spaceKey": "(مسافة)",
-      "keyLabel": "event.key",
+      "keyLabel": "المفتاح",
       "repeat": "تكرار"
     },
     "copyJson": "نسخ JSON",
     "copiedJson": "تم نسخ JSON الحدث إلى الحافظة",
     "deprecated": "مهمَل",
     "fields": {
-      "code": "event.code",
-      "keyCode": "event.keyCode",
-      "which": "event.which",
-      "location": "event.location"
+      "code": "الرمز",
+      "keyCode": "رمز المفتاح",
+      "which": "Which",
+      "location": "الموقع"
     },
     "location": {
       "standard": "قياسي",

@@ -5,6 +5,7 @@
  */
 
 import type { Collection, CollectionFolder, CollectionRequest, SavedExample } from "@/components/api-client/types"
+import { downloadFile } from "@/lib/desktop/save-file"
 
 interface HarHeader { name: string; value: string }
 
@@ -141,12 +142,5 @@ export function exportCollectionAsHar(collection: Collection): string {
 export function downloadCollectionAsHar(collection: Collection): void {
     if (typeof window === "undefined") return
     const blob = new Blob([exportCollectionAsHar(collection)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${collection.name.replace(/[^A-Za-z0-9_-]+/g, "_") || "collection"}.har`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    downloadFile(blob, `${collection.name.replace(/[^A-Za-z0-9_-]+/g, "_") || "collection"}.har`)
 }

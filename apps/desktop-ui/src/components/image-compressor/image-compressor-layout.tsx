@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useDebouncedCallback } from 'use-debounce';
 import { ToolShell } from '@/components/tools/tool-shell';
 import { ToolPanels, IOPanel } from '@/components/tools/io-panel';
+import { downloadFile } from '@/lib/desktop/save-file';
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_CANVAS_EDGE = 8192;
@@ -237,11 +238,8 @@ export function ImageCompressorLayout() {
   };
 
   const handleDownload = () => {
-    if (!compressedBlob || !compressedUrl) return;
-    const a = document.createElement('a');
-    a.href = compressedUrl;
-    a.download = `${t('downloadFilename')}.${extForMime(outputMime)}`;
-    a.click();
+    if (!compressedBlob) return;
+    downloadFile(compressedBlob, `${t('downloadFilename')}.${extForMime(outputMime)}`);
   };
 
   const savings =
