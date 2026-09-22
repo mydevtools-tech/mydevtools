@@ -3065,7 +3065,7 @@ dependencies = [
 
 [[package]]
 name = "mydevtools-desktop"
-version = "0.1.17"
+version = "0.1.18"
 dependencies = [
  "base64 0.23.1",
  "bytes",

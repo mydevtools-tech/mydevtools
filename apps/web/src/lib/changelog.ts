@@ -26,6 +26,22 @@ export const changeTypeLabels: Record<ChangeType, string> = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.18',
+    date: '2026-09-22',
+    title: 'Downloads that actually save',
+    summary:
+      'Saving a file worked in some tools and silently did nothing in others. Every download in the app now goes through one path, so the file lands on your disk and you get told where — across 30 tools. Plus fixes to the JSON formatter, beautify/minify and the recently-used list.',
+    changes: [
+      { type: 'fixed', text: 'Downloads now work everywhere. Exporting, saving or downloading a file was silently doing nothing in a number of tools — every one of them now saves properly and confirms where the file went.' },
+      { type: 'fixed', text: 'Favicon Generator: downloading your generated icons works again.' },
+      { type: 'fixed', text: 'JSON Formatter: a saved document can be loaded back into either pane, instead of only the one it was saved from.' },
+      { type: 'fixed', text: 'Beautify & Minify: the output panel is syntax-highlighted, so the result is readable instead of a wall of plain text.' },
+      { type: 'fixed', text: 'The recently-used section on the dashboard lists what you actually opened last.' },
+      { type: 'fixed', text: 'Keycode Inspector labels its fields in plain language rather than raw DOM property names.' },
+      { type: 'removed', text: 'Dropped a download button in the JSON Schema tool that never produced a file.' },
+    ],
+  },
+  {
     version: '0.1.17',
     date: '2026-08-31',
     title: 'Maintenance and updated libraries',
