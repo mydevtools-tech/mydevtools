@@ -15,12 +15,12 @@ const LINUX_RELEASE_URL = RELEASES_URL;
 export const metadata: Metadata = {
   title: "Download MyDevTools for Linux",
   description:
-    "Download the MyDevTools desktop app for Linux — Intel/AMD (x86_64), as an AppImage or a .deb. Completely offline, no account required, free for everyone.",
+    "Download the MyDevTools desktop app for Linux — Intel/AMD (x86_64) and ARM64, as an AppImage or a .deb. Completely offline, no account required, free for everyone.",
   alternates: { canonical: `${baseUrl}/linux-builds` },
   openGraph: {
     title: "Download MyDevTools for Linux | MyDevTools",
     description:
-      "Download the MyDevTools desktop app for Linux — Intel/AMD, AppImage or .deb. Offline, no account, free for everyone.",
+      "Download the MyDevTools desktop app for Linux — Intel/AMD and ARM64, AppImage or .deb. Offline, no account, free for everyone.",
     url: `${baseUrl}/linux-builds`,
     siteName: "MyDevTools",
     type: "website",
@@ -90,8 +90,9 @@ export default function LinuxBuildsPage() {
             </pre>
 
             <p className="mt-4 text-xs text-muted-foreground">
-              ARM64 machines (Raspberry Pi, ARM servers) are not supported yet — the
-              packages here are Intel/AMD only. Not sure which you have? Run{" "}
+              ARM64 machines (Raspberry Pi, ARM servers, Linux VMs on Apple Silicon) are
+              supported too — grab the <code>arm64</code> .deb or the{" "}
+              <code>aarch64</code> AppImage instead. Not sure which you have? Run{" "}
               <code>dpkg --print-architecture</code>.
             </p>
 

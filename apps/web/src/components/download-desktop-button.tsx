@@ -15,10 +15,13 @@ export const DMG_URL = `${RELEASES_URL}/download/MyDevTools.dmg`;
 /**
  * Linux artifacts. release-local.sh uploads arch-suffixed, version-less copies
  * to every release, so these URLs never need touching on a version bump.
- * amd64 only for now — the ARM64 packages are not part of the current release.
+ * Both architectures have shipped since 0.1.18; the arch naming is Tauri's —
+ * Debian spelling for the .deb, GNU triple for the AppImage.
  */
 export const DEB_URL = `${RELEASES_URL}/download/MyDevTools-amd64.deb`;
 export const APPIMAGE_URL = `${RELEASES_URL}/download/MyDevTools-x86_64.AppImage`;
+export const DEB_ARM64_URL = `${RELEASES_URL}/download/MyDevTools-arm64.deb`;
+export const APPIMAGE_ARM64_URL = `${RELEASES_URL}/download/MyDevTools-aarch64.AppImage`;
 
 /** Minimal Apple logo (lucide has no Apple icon in this version). */
 export function AppleGlyph({ className }: { className?: string }) {
@@ -56,6 +59,10 @@ export function DownloadDesktopButton({
  * Linux download. Two formats because they solve different problems: the .deb
  * integrates with apt on Debian/Ubuntu, the AppImage runs on anything without
  * installing. Neither self-updates yet, which /linux-builds says out loud.
+ *
+ * Intel/AMD keeps the buttons because it is what most desktop Linux runs;
+ * ARM64 sits on a quieter second line rather than doubling the button count,
+ * which would make the common case harder to pick out.
  */
 export function DownloadLinuxButton({
   size = "lg",
@@ -87,6 +94,25 @@ export function DownloadLinuxButton({
         <a className="underline underline-offset-2" href="/linux-builds">
           install guide
         </a>
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        On ARM64 (Apple Silicon VMs, ARM servers, Raspberry Pi)? Download the{" "}
+        <a
+          className="underline underline-offset-2 transition-colors hover:text-foreground"
+          href={DEB_ARM64_URL}
+          download
+        >
+          ARM64 .deb
+        </a>{" "}
+        or{" "}
+        <a
+          className="underline underline-offset-2 transition-colors hover:text-foreground"
+          href={APPIMAGE_ARM64_URL}
+          download
+        >
+          ARM64 AppImage
+        </a>
+        .
       </p>
     </div>
   );

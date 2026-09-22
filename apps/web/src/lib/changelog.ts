@@ -30,8 +30,9 @@ export const changelog: ChangelogEntry[] = [
     date: '2026-09-22',
     title: 'Downloads that actually save',
     summary:
-      'Saving a file worked in some tools and silently did nothing in others. Every download in the app now goes through one path, so the file lands on your disk and you get told where — across 30 tools. Plus fixes to the JSON formatter, beautify/minify and the recently-used list.',
+      'Saving a file worked in some tools and silently did nothing in others. Every download in the app now goes through one path, so the file lands on your disk and you get told where — across 30 tools. Linux also gains ARM64 packages, alongside fixes to the JSON formatter, beautify/minify and the recently-used list.',
     changes: [
+      { type: 'added', text: 'Linux on ARM64: this release ships an arm64 .deb and an aarch64 AppImage, so Raspberry Pi, ARM servers and Linux VMs on Apple Silicon get a native build instead of nothing.' },
       { type: 'fixed', text: 'Downloads now work everywhere. Exporting, saving or downloading a file was silently doing nothing in a number of tools — every one of them now saves properly and confirms where the file went.' },
       { type: 'fixed', text: 'Favicon Generator: downloading your generated icons works again.' },
       { type: 'fixed', text: 'JSON Formatter: a saved document can be loaded back into either pane, instead of only the one it was saved from.' },

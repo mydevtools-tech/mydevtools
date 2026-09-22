@@ -1266,7 +1266,7 @@ export const comparisonPages: ComparisonPage[] = [
     faqs: [
       {
         q: 'Is MyDevTools available on Windows or Linux?',
-        a: 'Linux, yes: every release ships a .deb and an AppImage (x86_64) alongside the signed, notarized universal macOS app. Windows, not for now — the Tauri shell can be built from source on Windows, but that build is untested and unsupported. See the roadmap.',
+        a: 'Linux, yes: every release ships a .deb and an AppImage for both Intel/AMD (x86_64) and ARM64, alongside the signed, notarized universal macOS app. Windows, not for now — the Tauri shell can be built from source on Windows, but that build is untested and unsupported. See the roadmap.',
       },
       {
         q: 'Is MyDevTools open source like DevToys?',
